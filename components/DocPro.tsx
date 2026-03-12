@@ -216,11 +216,17 @@ useEffect(() => {
     .then(data => { setDbTemplates(data); setTemplatesLoading(false); })
     .catch(() => setTemplatesLoading(false));
 }, []);
+ fetch("/api/documents")
+    .then(r => r.json())
+    .then(data => setDocHistory(Array.isArray(data) ? data : []))
+    .catch(() => {});
+}, []);
   const [sideOpen, setSideOpen] = useState(true);
   const [toast, setToast] = useState(null);
   const [selTpl, setSelTpl] = useState(null);
   const [tSearch, setTSearch] = useState("");
 const [dbTemplates, setDbTemplates] = useState<any[]>([]);
+const [docHistory, setDocHistory] = useState<any[]>([]);
 const [templatesLoading, setTemplatesLoading] = useState(false);
   const [tCat, setTCat] = useState("All");
   const [cSearch, setCSearch] = useState("");
@@ -1681,27 +1687,42 @@ ${letterBody}`
 
           {/* ═══ STORAGE ═══ */}
           {nav==="storage" && (
-            <div>
-              <PH title="Storage & Archive" sub="Scalable document storage with compliance controls" />
-              <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:14, marginBottom:20 }}>
-                {[{l:"Total Documents",v:"2.4M",c:AC},{l:"Storage Used",v:"1.8 TB",c:GR},{l:"Avg Retrieval",v:"120ms",c:AM},{l:"Retention Policy",v:"7 Years",c:PU}].map((s,i)=>(
-                  <Cd key={i} style={{ padding:18, borderTop:`3px solid ${s.c}` }}>
-                    <div style={{ fontSize:12, color:TM, marginBottom:6 }}>{s.l}</div>
-                    <div style={{ fontSize:24, fontWeight:700 }}>{s.v}</div>
-                  </Cd>
+  <div style={{ padding:32, maxWidth:900 }}>
+    <PH title="Document History" sub="Previously dispatched documents" />
+    {docHistory.length === 0 ? (
+      <div style={{ textAlign:"center", padding:60, color:TM, fontSize:14 }}>
+        No documents dispatched yet. Use the Compose wizard to create and dispatch your first document.
+      </div>
+    ) : (
+      <Cd>
+        <div style={{ overflowX:"auto" }}>
+          <table style={{ width:"100%", borderCollapse:"collapse", fontSize:13 }}>
+            <thead>
+              <tr style={{ borderBottom:`2px solid ${BD}` }}>
+                {["ID","Associated","Party","Mode","Language","Status","Date"].map(h=>(
+                  <th key={h} style={{ padding:"10px 14px", textAlign:"left", color:TS, fontWeight:600, whiteSpace:"nowrap" }}>{h}</th>
                 ))}
-              </div>
-              <Cd style={{ padding:20 }}>
-                <SL>Compliance Controls</SL>
-                {[["Encryption at rest","AES-256"],["Encryption in transit","TLS 1.3"],["WORM protection","7-year retention"],["GDPR compliance","Certified"],["Audit trail","Immutable log"]].map(([k,v])=>(
-                  <div key={k} style={{ display:"flex", justifyContent:"space-between", padding:"9px 0", borderBottom:`1px solid ${BD}`, fontSize:13 }}>
-                    <span style={{ color:TS }}>{k}</span><span style={{ color:GR, fontWeight:500 }}>✓ {v}</span>
-                  </div>
-                ))}
-              </Cd>
-            </div>
-          )}
-
+              </tr>
+            </thead>
+            <tbody>
+              {docHistory.map((doc,i)=>(
+                <tr key={doc.id} style={{ borderBottom:`1px solid ${BD}`, background:i%2===0?"#fff":PG }}>
+                  <td style={{ padding:"10px 14px", color:TM, fontFamily:"monospace" }}>#{doc.id}</td>
+                  <td style={{ padding:"10px 14px" }}>{doc.associated_name || "—"}<br/><span style={{ fontSize:11, color:TM }}>{doc.associated_ref || ""}</span></td>
+                  <td style={{ padding:"10px 14px" }}>{doc.party_name || "—"}<br/><span style={{ fontSize:11, color:TM }}>{doc.party_role || ""}</span></td>
+                  <td style={{ padding:"10px 14px" }}><Bdg label={doc.compose_mode || "template"} color={AC} light={ACL} /></td>
+                  <td style={{ padding:"10px 14px" }}>{doc.language?.toUpperCase() || "EN"}</td>
+                  <td style={{ padding:"10px 14px" }}><Bdg label={doc.status || "dispatched"} color={GR} light={GL} /></td>
+                  <td style={{ padding:"10px 14px", color:TM, whiteSpace:"nowrap" }}>{new Date(doc.created_at).toLocaleDateString("en-GB")}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </Cd>
+    )}
+  </div>
+)}
           {/* ═══ ANALYTICS ═══ */}
           {nav==="analytics" && (
             <div>
