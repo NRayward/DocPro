@@ -184,15 +184,13 @@ export default function DocProFixed() {
 const [userEmail, setUserEmail] = useState("");
   const [nav, setNav] = useState("dashboard");
 useEffect(() => {
-  const sb = (window as any).__sb || (() => {
-    const { createClient } = require("@supabase/supabase-js");
-    const c = createClient("https://eriubakpiniqiovnhgai.supabase.co", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVyaXViYWtwaW5pcWlvdm5oZ2FpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMyNzQ4MjgsImV4cCI6MjA4ODg1MDgyOH0.tM7uRDPwrtB2FPcZP7dIOMJxJ1-V0boyucn-T-Stxok");
-    (window as any).__sb = c;
-    return c;
-  })();
-  sb.auth.getSession().then(({ data }: any) => {
-    if (data?.session?.user?.email) setUserEmail(data.session.user.email);
-  });
+  const token = document.cookie.match(/sb-access-token=([^;]+)/)?.[1];
+  if (token) {
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      if (payload.email) setUserEmail(payload.email);
+    } catch(e) {}
+  }
 }, []);
   const [sideOpen, setSideOpen] = useState(true);
   const [toast, setToast] = useState(null);
