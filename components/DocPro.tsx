@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
 import { createClient } from "@supabase/supabase-js";
 
 const AC = "#4f6ef7"; const ACL = "#eef1fe"; const PG = "#f0f2f5"; const CB = "#ffffff";
