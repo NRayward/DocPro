@@ -1,7 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@supabase/supabase-js";
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -12,14 +17,20 @@ export default function LoginPage() {
   const handleLogin = async () => {
     setLoading(true);
     setError("");
-    console.log("Attempting login with:", email);
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-    console.log("Login result:", data, error);
+    const { data, error } = await supabase.auth.signInWithPassword({ 
+      email: email.trim(), 
+      password 
+    });
     if (error) {
       setError(error.message);
       setLoading(false);
-    } else {
+      return;
+    }
+    if (data.session) {
       window.location.href = "/";
+    } else {
+      setError("No session returned - please try again");
+      setLoading(false);
     }
   };
 
@@ -30,10 +41,11 @@ export default function LoginPage() {
           <div style={{ fontSize:24, fontWeight:700, color:"#1a1f2e", marginBottom:6 }}>DocPro</div>
           <div style={{ fontSize:14, color:"#6b7280" }}>Sign in to your account</div>
         </div>
-
         <div style={{ marginBottom:16 }}>
           <label style={{ fontSize:12, fontWeight:600, color:"#6b7280", display:"block", marginBottom:6 }}>Email address</label>
           <input
+            id="email"
+            name="email"
             type="email"
             value={email}
             onChange={e => setEmail(e.target.value)}
@@ -41,10 +53,11 @@ export default function LoginPage() {
             style={{ width:"100%", padding:"10px 12px", borderRadius:8, border:"1px solid #e5e8ef", fontSize:14, fontFamily:"inherit", boxSizing:"border-box" as any }}
           />
         </div>
-
         <div style={{ marginBottom:24 }}>
           <label style={{ fontSize:12, fontWeight:600, color:"#6b7280", display:"block", marginBottom:6 }}>Password</label>
           <input
+            id="password"
+            name="password"
             type="password"
             value={password}
             onChange={e => setPassword(e.target.value)}
@@ -53,13 +66,11 @@ export default function LoginPage() {
             style={{ width:"100%", padding:"10px 12px", borderRadius:8, border:"1px solid #e5e8ef", fontSize:14, fontFamily:"inherit", boxSizing:"border-box" as any }}
           />
         </div>
-
         {error && (
           <div style={{ background:"#fee2e2", color:"#ef4444", padding:"10px 12px", borderRadius:8, fontSize:13, marginBottom:16 }}>
             {error}
           </div>
         )}
-
         <button
           onClick={handleLogin}
           disabled={loading}
