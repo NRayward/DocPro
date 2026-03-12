@@ -215,8 +215,7 @@ useEffect(() => {
     .then(r => r.json())
     .then(data => { setDbTemplates(data); setTemplatesLoading(false); })
     .catch(() => setTemplatesLoading(false));
-}, []);
- fetch("/api/documents")
+  fetch("/api/documents")
     .then(r => r.json())
     .then(data => setDocHistory(Array.isArray(data) ? data : []))
     .catch(() => {});
