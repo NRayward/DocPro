@@ -184,12 +184,14 @@ export default function DocProFixed() {
 const [userEmail, setUserEmail] = useState("Loading...");
   const [nav, setNav] = useState("dashboard");
 useEffect(() => {
-  const client = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
-  client.auth.getUser().then(({ data }) => {
-    if (data.user) setUserEmail(data.user.email || "Unknown");
+  import("@supabase/supabase-js").then(({ createClient }) => {
+    const sb = createClient(
+      "https://eriubakpiniqiovnhgai.supabase.co",
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ""
+    );
+    sb.auth.getSession().then(({ data }) => {
+      if (data.session?.user?.email) setUserEmail(data.session.user.email);
+    });
   });
 }, []);
   const [sideOpen, setSideOpen] = useState(true);
