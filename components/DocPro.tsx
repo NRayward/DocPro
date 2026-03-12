@@ -187,7 +187,7 @@ useEffect(() => {
   fetch("https://eriubakpiniqiovnhgai.supabase.co/auth/v1/user", {
     headers: {
       apikey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVyaXViYWtwaW5pcWlvdm5oZ2FpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMyNzQ4MjgsImV4cCI6MjA4ODg1MDgyOH0.tM7uRDPwrtB2FPcZP7dIOMJxJ1-V0boyucn-T-Stxok",
-      Authorization: "Bearer " + (document.cookie.match(/sb-eriubakpiniqiovnhgai-auth-token=([^;]+)/)?.[1] || "")
+      Authorization: "Bearer " + (JSON.parse(localStorage.getItem("sb-eriubakpiniqiovnhgai-auth-token") || "{}"))?.access_token || ""
     }
   })
   .then(r => r.json())
