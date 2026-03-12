@@ -181,7 +181,18 @@ function SL({ children }: { children?: any }) {
 }
 
 export default function DocProFixed() {
-const [userEmail, setUserEmail] = useState("");
+const getEmailFromCookie = () => {
+  try {
+    const match = document.cookie.match(/sb-access-token=([^;]+)/);
+    if (match) {
+      const base64 = match[1].split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+      const padded = base64 + '=='.slice(0, (4 - base64.length % 4) % 4);
+      return JSON.parse(atob(padded)).email || "";
+    }
+  } catch(e) {}
+  return "";
+};
+const [userEmail, setUserEmail] = useState(() => typeof window !== 'undefined' ? getEmailFromCookie() : "");
   const [nav, setNav] = useState("dashboard");
 useEffect(() => {
   try {
