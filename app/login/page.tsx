@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { createClient } from "@supabase/supabase-js";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -11,22 +12,28 @@ export default function LoginPage() {
   const handleLogin = async () => {
     setLoading(true);
     setError("");
-    
-    const res = await fetch("/api/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: email.trim(), password })
+
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    );
+
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: email.trim(),
+      password
     });
 
-    const data = await res.json();
-    
-    if (!res.ok) {
-      setError(data.error || "Login failed");
+    if (error) {
+      setError(error.message);
       setLoading(false);
       return;
     }
 
-    window.location.href = "/";
+    if (data.session) {
+      document.cookie = `sb-access-token=${data.session.access_token}; path=/; max-age=3600; SameSite=Lax`;
+      document.cookie = `sb-refresh-token=${data.session.refresh_token}; path=/; max-age=86400; SameSite=Lax`;
+      window.location.href = "/";
+    }
   };
 
   return (
