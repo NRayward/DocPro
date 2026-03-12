@@ -208,10 +208,20 @@ useEffect(() => {
   } catch(e) {
     console.error("Email parse error:", e);
   }
-}, []);  const [sideOpen, setSideOpen] = useState(true);
+}, []);
+useEffect(() => {
+  setTemplatesLoading(true);
+  fetch("/api/templates")
+    .then(r => r.json())
+    .then(data => { setDbTemplates(data); setTemplatesLoading(false); })
+    .catch(() => setTemplatesLoading(false));
+}, []);
+  const [sideOpen, setSideOpen] = useState(true);
   const [toast, setToast] = useState(null);
   const [selTpl, setSelTpl] = useState(null);
   const [tSearch, setTSearch] = useState("");
+const [dbTemplates, setDbTemplates] = useState<any[]>([]);
+const [templatesLoading, setTemplatesLoading] = useState(false);
   const [tCat, setTCat] = useState("All");
   const [cSearch, setCSearch] = useState("");
   const [cCat, setCCat] = useState("All");
@@ -487,7 +497,7 @@ useEffect(() => {
           {/* ═══ TEMPLATES ═══ */}
           {nav==="templates" && (()=>{
             const cats = ["All","Renewals","Claims","Certificates","Onboarding","Endorsements","Cancellations"];
-            const filtered = TEMPLATES.filter(t=>{
+            const filtered = (dbTemplates.length ? dbTemplates : TEMPLATES).filter(t=>{
               const matchSearch = !tSearch.trim() ||
                 t.name.toLowerCase().includes(tSearch.toLowerCase()) ||
                 t.type.toLowerCase().includes(tSearch.toLowerCase()) ||
@@ -772,7 +782,7 @@ useEffect(() => {
                       {/* ── Template mode ── */}
                       {composeMode==="template" && (()=>{
                         const cats = ["All","Renewals","Claims","Certificates","Onboarding","Endorsements","Cancellations"];
-                        const filtered = TEMPLATES.filter(t => {
+                        const filtered = (dbTemplates.length ? dbTemplates : TEMPLATES).filter(t => {
                           const q = cSearch.trim().toLowerCase();
                           const matchSearch = !q || t.name.toLowerCase().includes(q) || t.type.toLowerCase().includes(q) || t.cat.toLowerCase().includes(q) || t.ver.toLowerCase().includes(q);
                           const matchCat = cCat==="All" || t.cat===cCat;
