@@ -183,7 +183,7 @@ function SL({ children }: { children?: any }) {
 export default function DocProFixed() {
 const [userEmail, setUserEmail] = useState("");
   const [nav, setNav] = useState("dashboard");
-UseEffect(() => {
+useEffect(() => {
   fetch("https://eriubakpiniqiovnhgai.supabase.co/auth/v1/user", {
     headers: {
       apikey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVyaXViYWtwaW5pcWlvdm5oZ2FpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMyNzQ4MjgsImV4cCI6MjA4ODg1MDgyOH0.tM7uRDPwrtB2FPcZP7dIOMJxJ1-V0boyucn-T-Stxok",
