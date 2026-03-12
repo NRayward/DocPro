@@ -12,7 +12,9 @@ export default function LoginPage() {
   const handleLogin = async () => {
     setLoading(true);
     setError("");
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    console.log("Attempting login with:", email);
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    console.log("Login result:", data, error);
     if (error) {
       setError(error.message);
       setLoading(false);
