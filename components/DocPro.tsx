@@ -184,15 +184,20 @@ export default function DocProFixed() {
 const [userEmail, setUserEmail] = useState("");
   const [nav, setNav] = useState("dashboard");
 useEffect(() => {
-  const token = document.cookie.match(/sb-access-token=([^;]+)/)?.[1];
-  if (token) {
-    try {
-      const payload = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+  try {
+    const allCookies = document.cookie;
+    const match = allCookies.match(/sb-access-token=([^;]+)/);
+    if (match) {
+      const token = match[1];
+      const base64 = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+      const padded = base64 + '=='.slice(0, (4 - base64.length % 4) % 4);
+      const payload = JSON.parse(atob(padded));
       if (payload.email) setUserEmail(payload.email);
-    } catch(e) {}
+    }
+  } catch(e) {
+    console.error("Email parse error:", e);
   }
-}, []);
-  const [sideOpen, setSideOpen] = useState(true);
+}, []);  const [sideOpen, setSideOpen] = useState(true);
   const [toast, setToast] = useState(null);
   const [selTpl, setSelTpl] = useState(null);
   const [tSearch, setTSearch] = useState("");
