@@ -162,20 +162,20 @@ const NAV_ITEMS = [
   { id:"security",     label:"Security",         sec:"MANAGE",    badge:null },
 ];
 
-function Cd({ children, style, onClick }) {
+function Cd({ children, style, onClick }: { children?: any, style?: any, onClick?: any }) {
   return <div onClick={onClick} style={{ background:CB, borderRadius:10, border:`1px solid ${BD}`, boxShadow:"0 1px 4px rgba(0,0,0,0.06)", ...style }}>{children}</div>;
 }
-function Icon({ v, size=18 }) {
+function Icon({ v, size=18 }: { v: any, size?: number }) {
   if (v === "__WA__") return <img src={WA_LOGO} alt="WhatsApp" style={{ width:size, height:size, objectFit:"contain", verticalAlign:"middle", display:"inline-block" }} />;
   return <span style={{ fontSize:size }}>{v}</span>;
 }
-function PH({ title, sub, nomb }) {
+function PH({ title, sub, nomb }: { title?: any, sub?: any, nomb?: any }) {
   return <div style={{ marginBottom:nomb?0:20 }}><h1 style={{ fontSize:20, fontWeight:700, color:TP, margin:0, marginBottom:4, fontFamily:F }}>{title}</h1><p style={{ fontSize:13, color:TS, margin:0 }}>{sub}</p></div>;
 }
-function Bdg({ label, color, light }) {
+function Bdg({ label, color, light }: { label?: any, color?: any, light?: any }) {
   return <span style={{ display:"inline-block", fontSize:11, padding:"3px 9px", borderRadius:20, background:light||`${color}15`, color, fontWeight:600, whiteSpace:"nowrap" }}>{label}</span>;
 }
-function SL({ children }) {
+function SL({ children }: { children?: any }) {
   return <div style={{ fontSize:11, fontWeight:600, color:TM, letterSpacing:"0.06em", textTransform:"uppercase", marginBottom:12 }}>{children}</div>;
 }
 
