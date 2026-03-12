@@ -1086,7 +1086,7 @@ Rules:
                             <span>RDT Limited · Registered in England &amp; Wales No. 12345678</span>
                           </div>
                           <div style={{ fontSize:10, color:"rgba(255,255,255,0.5)", fontFamily:F }}>
-                            Prepared by: <span style={{ color:"rgba(255,255,255,0.8)", fontWeight:600 }}>s.kent</span> · Doc Administrator
+                            Prepared by: <span style={{ color:"rgba(255,255,255,0.8)", fontWeight:600 }}>{userEmail}</span>
                           </div>
                         </div>
                       </div>
@@ -1472,7 +1472,7 @@ ${letterBody}`
                           ["Recipients","4,200 · PAS extract"],
                           ["Channels",  distChannels.length ? distChannels.map(c=>c.charAt(0).toUpperCase()+c.slice(1)).join(", ") : "—"],
                           ["Schedule",  distSchedule==="immediate"?"Send immediately":distSchedule==="scheduled"?"Scheduled":"Pending approval"],
-                          ["Prepared by","${userEmail} · Doc Administrator"],
+                          ["Prepared by","", userEmail + " · Doc Administrator"],
                         ].map(([k,v],i,arr)=>(
                           <div key={k} style={{ display:"flex", justifyContent:"space-between", padding:"10px 14px", borderBottom:i<arr.length-1?`1px solid ${BD}`:"none", fontSize:13 }}>
                             <span style={{ color:TM, fontWeight:500 }}>{k}</span>
