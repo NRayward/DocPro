@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect } from "react";
+import { createClient } from "@supabase/supabase-js";
 
 const AC = "#4f6ef7"; const ACL = "#eef1fe"; const PG = "#f0f2f5"; const CB = "#ffffff";
 const BD = "#e5e8ef"; const TP = "#1a1f2e"; const TS = "#6b7280"; const TM = "#9ca3af";
@@ -180,7 +181,17 @@ function SL({ children }: { children?: any }) {
 }
 
 export default function DocProFixed() {
+const [userEmail, setUserEmail] = useState("Loading...");
   const [nav, setNav] = useState("dashboard");
+useEffect(() => {
+  const client = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
+  client.auth.getUser().then(({ data }) => {
+    if (data.user) setUserEmail(data.user.email || "Unknown");
+  });
+}, []);
   const [sideOpen, setSideOpen] = useState(true);
   const [toast, setToast] = useState(null);
   const [selTpl, setSelTpl] = useState(null);
@@ -1461,7 +1472,7 @@ ${letterBody}`
                           ["Recipients","4,200 · PAS extract"],
                           ["Channels",  distChannels.length ? distChannels.map(c=>c.charAt(0).toUpperCase()+c.slice(1)).join(", ") : "—"],
                           ["Schedule",  distSchedule==="immediate"?"Send immediately":distSchedule==="scheduled"?"Scheduled":"Pending approval"],
-                          ["Prepared by","Sarah Kent · Doc Administrator"],
+                          ["Prepared by","${userEmail} · Doc Administrator"],
                         ].map(([k,v],i,arr)=>(
                           <div key={k} style={{ display:"flex", justifyContent:"space-between", padding:"10px 14px", borderBottom:i<arr.length-1?`1px solid ${BD}`:"none", fontSize:13 }}>
                             <span style={{ color:TM, fontWeight:500 }}>{k}</span>
