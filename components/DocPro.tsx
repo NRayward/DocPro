@@ -1532,7 +1532,7 @@ ${letterBody}`
 
                       <div style={{ display:"flex", gap:10 }}>
                         <button onClick={async ()=>{ try { await fetch("/api/documents",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({associated_type:searchType,associated_ref:selectedRecord?.ref||null,associated_name:selectedRecord?.name||null,party_name:selectedParty?.name||null,party_role:selectedParty?.role||null,letter_body:aiDraft,compose_mode:composeMode,language:transLang||"en",status:"dispatched"})}); } catch(e) {} if(distChannels.includes("wa")){
-  fetch("/api/whatsapp",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({to:"+447825806679",message:aiDraft||"Your document has been dispatched by RDT Limited."})});
+  fetch("/api/whatsapp",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({to:"+447825806679",message:aiDraft||"Your document has been dispatched by RDT Limited."})}).then(r=>r.json()).then(d=>console.log("WA:",d)).catch(e=>console.error("WA:",e));
 }
 notify("Job queued for dispatch"); setComposeStep(1);setDistChannels([]);setDistSchedule("immediate");setAiDraft("");setAiPrompt("");setAiPurpose("");setAiRecipient("");setComposeMode("template");setSelectedRecord(null);setSearchQuery("");setSelectedParty(null);setClaimPartyStep(false);setTransLang("");setTransOpen(false);setCSearch("");setCCat("All");}} style={{ ...bP, flex:1 }}>
                           Confirm &amp; Dispatch
