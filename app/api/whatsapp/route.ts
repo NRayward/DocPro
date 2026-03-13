@@ -1,4 +1,3 @@
-
 import twilio from 'twilio'
 import { NextResponse } from 'next/server'
 
@@ -15,12 +14,17 @@ export async function POST(req: Request) {
   }
 
   try {
-    const result = await client.messages.create({
+    const params: any = {
       from: process.env.TWILIO_WHATSAPP_FROM!,
       to: `whatsapp:${to}`,
-      body: message, mediaUrl: mediaUrl ? [mediaUrl] : undefined
-    })
+      body: message
+    }
 
+    if (mediaUrl) {
+      params.mediaUrl = [mediaUrl]
+    }
+
+    const result = await client.messages.create(params)
     return NextResponse.json({ success: true, sid: result.sid })
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 })
