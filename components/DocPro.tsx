@@ -342,9 +342,12 @@ const [templatesLoading, setTemplatesLoading] = useState(false);
             </div>
           ))}
         </nav>
-        <div style={{ padding:"10px 6px", borderTop:`1px solid ${BD}` }}>
+        <div style={{ padding:"10px 6px", borderTop:`1px solid ${BD}`, display:"flex", flexDirection:"column", gap:6 }}>
           <button onClick={()=>setSideOpen(p=>!p)} style={{ width:"100%", padding:"7px 10px", borderRadius:7, border:`1px solid ${BD}`, background:PG, cursor:"pointer", fontSize:12, color:TS, fontFamily:F, textAlign:"center" }}>
             {sideOpen ? "← Collapse" : "→"}
+          </button>
+          <button onClick={()=>{ const c = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!); c.auth.signOut().then(()=>{ document.cookie="sb-access-token=;max-age=0;path=/"; document.cookie="sb-refresh-token=;max-age=0;path=/"; window.location.href="/login"; }); }} style={{ width:"100%", padding:"7px 10px", borderRadius:7, border:`1px solid ${BD}`, background:"#fff", cursor:"pointer", fontSize:12, color:RD, fontFamily:F, textAlign:"center", display:sideOpen?"block":"none" }}>
+            Sign Out
           </button>
         </div>
       </aside>
