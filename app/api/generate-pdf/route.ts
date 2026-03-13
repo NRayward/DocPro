@@ -1,4 +1,3 @@
-import htmlPdf from 'html-pdf-node'
 import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 
@@ -34,17 +33,23 @@ export async function POST(req: Request) {
   `
 
   try {
-    const file = { content: html }
-    const options = { format: 'A4' }
-    
-    const pdfBuffer = await new Promise<Buffer>((resolve, reject) => {
-      htmlPdf.generatePdf(file, options, (err: any, buffer: Buffer) => {
-        if (err) reject(err)
-        else resolve(buffer)
-      })
+    const pdfRes = await fetch('https://api.pdfshift.io/v3/convert/pdf', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Basic ' + Buffer.from(`api:${process.env.PDFSHIFT_API_KEY}`).toString('base64')
+      },
+      body: JSON.stringify({ source: html, landscape: false, use_print: false })
     })
 
+    if (!pdfRes.ok) {
+      const err = await pdfRes.text()
+      return NextResponse.json({ error: err }, { status: 500 })
+    }
+
+    const pdfBuffer = Buffer.from(await pdfRes.arrayBuffer())
     const fileName = `document-${documentId || Date.now()}.pdf`
+
     const { error } = await supabase.storage
       .from('documents')
       .upload(fileName, pdfBuffer, { contentType: 'application/pdf', upsert: true })
