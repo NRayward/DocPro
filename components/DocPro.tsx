@@ -1844,9 +1844,13 @@ ${letterBody}`
                         </tr>
                       </thead>
                       <tbody>
-                        {users.filter(u=>u.name.toLowerCase().includes(uSearch.toLowerCase())||u.email.toLowerCase().includes(uSearch.toLowerCase())).map(u=>{
-                          const role = ROLES.find(r=>r.id===u.role);
-                          const initials = u.name.split(" ").map(w=>w[0]).join("").slice(0,2);
+                        {(realUsers.length ? realUsers : users).filter(u=>{
+                            const name = u.name || u.email || "";
+                            const email = u.email || "";
+                            return name.toLowerCase().includes(uSearch.toLowerCase())||email.toLowerCase().includes(uSearch.toLowerCase());
+                          }).map(u=>{
+                          const role = ROLES.find(r=>r.id===u.role) || ROLES[0];
+                          const initials = (u.name||u.email||"?").split(" ").map((w:string)=>w[0]).join("").slice(0,2).toUpperCase();
                           return (
                             <tr key={u.id} style={{ borderBottom:`1px solid ${BD}`, background:selUser?.id===u.id?ACL:"#fff" }}>
                               <td style={{ padding:"12px 16px" }}>
