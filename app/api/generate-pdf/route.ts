@@ -1,5 +1,4 @@
-import chromium from '@sparticuz/chromium'
-import puppeteer from 'puppeteer-core'
+import htmlPdf from 'html-pdf-node'
 import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 
@@ -35,22 +34,20 @@ export async function POST(req: Request) {
   `
 
   try {
-    const browser = await puppeteer.launch({
-      args: chromium.args,
-      
-      executablePath: await chromium.executablePath(),
-      headless: true
+    const file = { content: html }
+    const options = { format: 'A4' }
+    
+    const pdfBuffer = await new Promise<Buffer>((resolve, reject) => {
+      htmlPdf.generatePdf(file, options, (err: any, buffer: Buffer) => {
+        if (err) reject(err)
+        else resolve(buffer)
+      })
     })
-
-    const page = await browser.newPage()
-    await page.setContent(html, { waitUntil: 'networkidle0' })
-    const pdf = await page.pdf({ format: 'A4', margin: { top: '20mm', bottom: '20mm', left: '20mm', right: '20mm' } })
-    await browser.close()
 
     const fileName = `document-${documentId || Date.now()}.pdf`
     const { error } = await supabase.storage
       .from('documents')
-      .upload(fileName, pdf, { contentType: 'application/pdf', upsert: true })
+      .upload(fileName, pdfBuffer, { contentType: 'application/pdf', upsert: true })
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
