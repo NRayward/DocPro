@@ -8,7 +8,7 @@ const client = twilio(
 )
 
 export async function POST(req: Request) {
-  const { to, message } = await req.json()
+  const { to, message, mediaUrl } = await req.json()
 
   if (!to || !message) {
     return NextResponse.json({ error: "Missing to or message" }, { status: 400 })
@@ -18,7 +18,7 @@ export async function POST(req: Request) {
     const result = await client.messages.create({
       from: process.env.TWILIO_WHATSAPP_FROM!,
       to: `whatsapp:${to}`,
-      body: message
+      body: message, ...(mediaUrl ? { mediaUrl: [mediaUrl] } : {}), ...(mediaUrl ? { mediaUrl: [mediaUrl] } : {})
     })
 
     return NextResponse.json({ success: true, sid: result.sid })
