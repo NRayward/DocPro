@@ -219,6 +219,10 @@ useEffect(() => {
     .then(r => r.json())
     .then(data => setDocHistory(Array.isArray(data) ? data : []))
     .catch(() => {});
+fetch("/api/users")
+    .then(r => r.json())
+    .then(data => setRealUsers(Array.isArray(data) ? data : []))
+    .catch(() => {});
 }, []);
   const [sideOpen, setSideOpen] = useState(true);
   const [toast, setToast] = useState(null);
@@ -226,6 +230,7 @@ useEffect(() => {
   const [tSearch, setTSearch] = useState("");
 const [dbTemplates, setDbTemplates] = useState<any[]>([]);
 const [docHistory, setDocHistory] = useState<any[]>([]);
+const [realUsers, setRealUsers] = useState<any[]>([]);
 const [templatesLoading, setTemplatesLoading] = useState(false);
   const [tCat, setTCat] = useState("All");
   const [cSearch, setCSearch] = useState("");
