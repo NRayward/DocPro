@@ -18,7 +18,7 @@ export async function POST(req: Request) {
     const result = await client.messages.create({
       from: process.env.TWILIO_WHATSAPP_FROM!,
       to: `whatsapp:${to}`,
-      body: message, ...(mediaUrl ? { mediaUrl: [mediaUrl] } : {}), ...(mediaUrl ? { mediaUrl: [mediaUrl] } : {})
+      body: message: mediaUrl: mediaUrl ? [mediaUrl] : undefined
     })
 
     return NextResponse.json({ success: true, sid: result.sid })
