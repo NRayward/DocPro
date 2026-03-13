@@ -1,12 +1,11 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
+import { RDT_LOGO } from '@/lib/logo'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_KEY!
 )
-
-const RDT_LOGO = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAUDBAQEAwUEBAQFBQUGBwwIBwcHBw8LCwkMEQ8SEhEPERETFhwXExQaFRERGCEYGh0dHx8fExciJCIeJBweHx7/2wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCADSAZADASIAAhEBAxEB/8QAHQABAAICAwEBAAAAAAAAAAAAAAgJBgcDBAUBAv/EAFEQAAEDAgMEAggSCAUDBQAAAAEAAgMEBQYHEQgSITFBURMiOFZhcYGRFBUXGDI0N2Jyc3WUobKztMHSIzNCUnSCsdEJFjWT00OSwmNkw+Hw/8k="
 
 export async function POST(req: Request) {
   const { letterBody, documentId } = await req.json()
@@ -19,10 +18,10 @@ export async function POST(req: Request) {
         body { font-family: Arial, sans-serif; margin: 0; padding: 0; color: #1a1f2e; }
         .header { padding: 24px 40px 20px; border-bottom: 3px solid #f97316; display: flex; align-items: center; justify-content: space-between; }
         .logo { height: 66px; width: 198px; object-fit: contain; }
-        .content { padding: 32px 40px; }
+        .content { padding: 32px 40px 80px; }
         .address { font-size: 12px; color: #6b7280; margin-bottom: 24px; line-height: 1.6; }
         .body { font-size: 13px; line-height: 1.8; white-space: pre-wrap; margin-bottom: 32px; }
-        .footer { background: #1a1f2e; padding: 10px 40px; display: flex; justify-content: space-between; align-items: center; position: fixed; bottom: 0; width: 100%; box-sizing: border-box; }
+        .footer { background: #1a1f2e; padding: 10px 40px; display: flex; justify-content: space-between; align-items: center; position: fixed; bottom: 0; left: 0; right: 0; }
         .footer-left { font-size: 10px; color: rgba(255,255,255,0.6); }
         .footer-right { font-size: 10px; color: rgba(255,255,255,0.5); }
       </style>
