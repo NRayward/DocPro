@@ -6,6 +6,8 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_KEY!
 )
 
+const RDT_LOGO = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAUDBAQEAwUEBAQFBQUGBwwIBwcHBw8LCwkMEQ8SEhEPERETFhwXExQaFRERGCEYGh0dHx8fExciJCIeJBweHx7/2wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCADSAZADASIAAhEBAxEB/8QAHQABAAICAwEBAAAAAAAAAAAAAAgJBgcDBAUBAv/EAFEQAAEDAgMEAggSCAUDBQAAAAEAAgMEBQYHEQgSITFBURMiOFZhcYGRFBUXGDI0N2Jyc3WUobKztMHSIzNCUnSCsdEJFjWT00OSwmNkw+Hw/8k="
+
 export async function POST(req: Request) {
   const { letterBody, documentId } = await req.json()
 
@@ -14,20 +16,38 @@ export async function POST(req: Request) {
     <html>
     <head>
       <style>
-        body { font-family: Arial, sans-serif; margin: 40px; color: #1a1f2e; }
-        .header { border-bottom: 3px solid #f97316; padding-bottom: 20px; margin-bottom: 30px; }
-        .logo { font-size: 28px; font-weight: bold; color: #1a1f2e; }
-        .body { font-size: 14px; line-height: 1.8; white-space: pre-wrap; }
-        .footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid #e5e8ef; font-size: 11px; color: #9ca3af; }
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; color: #1a1f2e; }
+        .header { padding: 24px 40px 20px; border-bottom: 3px solid #f97316; display: flex; align-items: center; justify-content: space-between; }
+        .logo { height: 66px; width: 198px; object-fit: contain; }
+        .content { padding: 32px 40px; }
+        .address { font-size: 12px; color: #6b7280; margin-bottom: 24px; line-height: 1.6; }
+        .body { font-size: 13px; line-height: 1.8; white-space: pre-wrap; margin-bottom: 32px; }
+        .footer { background: #1a1f2e; padding: 10px 40px; display: flex; justify-content: space-between; align-items: center; position: fixed; bottom: 0; width: 100%; box-sizing: border-box; }
+        .footer-left { font-size: 10px; color: rgba(255,255,255,0.6); }
+        .footer-right { font-size: 10px; color: rgba(255,255,255,0.5); }
       </style>
     </head>
     <body>
       <div class="header">
-        <div class="logo">RDT</div>
-        <div style="font-size:12px; color:#6b7280; margin-top:4px">Insurance Technology</div>
+        <img src="${RDT_LOGO}" class="logo" alt="RDT" />
+        <div style="font-size:11px; color:#6b7280; text-align:right; line-height:1.6">
+          RDT Limited<br/>
+          Birmingham, UK<br/>
+          www.rdtltd.com
+        </div>
       </div>
-      <div class="body">${letterBody || "No letter content provided."}</div>
-      <div class="footer">RDT Limited · Registered in England & Wales No. 12345678</div>
+      <div class="content">
+        <div class="address">
+          {{CUSTOMER_NAME}}<br/>
+          {{ADDRESS_LINE_1}}<br/>
+          {{POSTCODE}}
+        </div>
+        <div class="body">${(letterBody || "").replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>
+      </div>
+      <div class="footer">
+        <div class="footer-left">RDT Limited &middot; Registered in England &amp; Wales No. 12345678</div>
+        <div class="footer-right">Confidential</div>
+      </div>
     </body>
     </html>
   `
