@@ -18,10 +18,10 @@ export async function POST(req: Request) {
         body { font-family: Arial, sans-serif; margin: 0; padding: 0; color: #1a1f2e; }
         .header { padding: 24px 40px 20px; border-bottom: 3px solid #f97316; display: flex; align-items: center; justify-content: space-between; }
         .logo { height: 66px; width: 198px; object-fit: contain; }
-        .content { padding: 32px 40px 80px; }
+        body: .content { padding: 32px 40px 20px; }message,
         .address { font-size: 12px; color: #6b7280; margin-bottom: 24px; line-height: 1.6; }
         .body { font-size: 13px; line-height: 1.8; white-space: pre-wrap; margin-bottom: 32px; }
-        .footer { background: #1a1f2e; padding: 10px 40px; display: flex; justify-content: space-between; align-items: center; position: fixed; bottom: 0; left: 0; right: 0; }
+        .footer { background: #1a1f2e; padding: 10px 40px; display: flex; justify-content: space-between; align-items: center; margin-top: 60px; }
         .footer-left { font-size: 10px; color: rgba(255,255,255,0.6); }
         .footer-right { font-size: 10px; color: rgba(255,255,255,0.5); }
       </style>
