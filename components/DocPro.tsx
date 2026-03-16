@@ -271,7 +271,6 @@ const [templatesLoading, setTemplatesLoading] = useState(false);
   const [transOpen, setTransOpen] = useState(false);
   const [distChannels, setDistChannels] = useState([]);
   const [distSchedule, setDistSchedule] = useState("immediate");
-const [pasResults, setPasResults] = useState<any[]>([]);  
   const [emailConfig, setEmailConfig] = useState({ source:"pas", manualList:"", subject:"Your Policy Renewal – Action Required", fromName:"RDT Limited", fromEmail:"noreply@rdtltd.com", replyTo:"renewals@rdtltd.com", format:"attachment", testEmail:"" });
   const [emailTab, setEmailTab] = useState("recipients");
   const [bulkPct, setBulkPct] = useState(0);
