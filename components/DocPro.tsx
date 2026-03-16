@@ -223,7 +223,23 @@ fetch("/api/users")
     .then(r => r.json())
     .then(data => setRealUsers(Array.isArray(data) ? data : []))
     .catch(() => {});
-}, []);
+  }, []);
+
+  useEffect(() => {
+    if (searchQuery.length < 2) { setPasResults([]); return; }
+    fetch(`/api/pas-search?q=${encodeURIComponent(searchQuery)}&type=${searchType}`)
+      .then(r => r.json())
+      .then(data => setPasResults(Array.isArray(data) ? data : []))
+      .catch(() => setPasResults([]));
+ }, []);
+
+  useEffect(() => {
+    if (searchQuery.length < 2) { setPasResults([]); return; }
+    fetch(`/api/pas-search?q=${encodeURIComponent(searchQuery)}&type=${searchType}`)
+      .then(r => r.json())
+      .then(data => setPasResults(Array.isArray(data) ? data : []))
+      .catch(() => setPasResults([]));
+  }, [searchQuery, searchType]);
   const [sideOpen, setSideOpen] = useState(true);
   const [toast, setToast] = useState(null);
   const [selTpl, setSelTpl] = useState(null);
@@ -238,7 +254,9 @@ const [templatesLoading, setTemplatesLoading] = useState(false);
   const [channels, setChannels] = useState([]);
   const [composeStep, setComposeStep] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
-  const [searchType, setSearchType] = useState("policy");
+ const [searchType, setSearchType] = useState("policy");
+  const [pasResults, setPasResults] = useState<any[]>([]);
+  const [pasResults, setPasResults] = useState<any[]>([]);
   const [selectedRecord, setSelectedRecord] = useState(null);
   const [selectedParty, setSelectedParty] = useState(null);
   const [claimPartyStep, setClaimPartyStep] = useState(false);
@@ -254,6 +272,8 @@ const [templatesLoading, setTemplatesLoading] = useState(false);
   const [transOpen, setTransOpen] = useState(false);
   const [distChannels, setDistChannels] = useState([]);
   const [distSchedule, setDistSchedule] = useState("immediate");
+const [pasResults, setPasResults] = useState<any[]>([]);  
+const [pasResults, setPasResults] = useState<any[]>([]);
   const [emailConfig, setEmailConfig] = useState({ source:"pas", manualList:"", subject:"Your Policy Renewal – Action Required", fromName:"RDT Limited", fromEmail:"noreply@rdtltd.com", replyTo:"renewals@rdtltd.com", format:"attachment", testEmail:"" });
   const [emailTab, setEmailTab] = useState("recipients");
   const [bulkPct, setBulkPct] = useState(0);
@@ -654,7 +674,7 @@ const [templatesLoading, setTemplatesLoading] = useState(false);
 
                       {/* Search results */}
                       {searchQuery.length>1 && !selectedRecord && (()=>{
-                        const results = (SEARCH_DATA[searchType]||[]).filter(r=>
+                        const results = (pasResults.length > 0 ? pasResults : (SEARCH_DATA[searchType]||[])).filter(r=>
                           r.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           r.ref.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           r.detail.toLowerCase().includes(searchQuery.toLowerCase())
