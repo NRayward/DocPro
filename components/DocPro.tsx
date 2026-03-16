@@ -224,15 +224,6 @@ fetch("/api/users")
     .then(data => setRealUsers(Array.isArray(data) ? data : []))
     .catch(() => {});
   }, []);
-
-  useEffect(() => {
-    if (!searchQuery || searchQuery.length < 2) { setPasResults([]); return; }
-    fetch(`/api/pas-search?q=${encodeURIComponent(searchQuery)}&type=${searchType}`)
-      .then(r => r.json())
-      .then(data => setPasResults(Array.isArray(data) ? data : []))
-      .catch(() => setPasResults([]));
-  }, [searchQuery, searchType]);
-
   useEffect(() => {
     if (searchQuery.length < 2) { setPasResults([]); return; }
     fetch(`/api/pas-search?q=${encodeURIComponent(searchQuery)}&type=${searchType}`)
