@@ -241,7 +241,8 @@ const [templatesLoading, setTemplatesLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
  const [searchType, setSearchType] = useState("policy");
   const [pasResults, setPasResults] = useState<any[]>([]);
-
+  const [mergeData, setMergeData] = useState<Record<string,string>>({});
+  
   useEffect(() => {
     if (!searchQuery || searchQuery.length < 2) { setPasResults([]); return; }
     fetch(`/api/pas-search?q=${encodeURIComponent(searchQuery)}&type=${searchType}`)
@@ -675,7 +676,7 @@ const [templatesLoading, setTemplatesLoading] = useState(false);
                         return (
                           <div style={{ border:`1px solid ${BD}`, borderRadius:8, overflow:"hidden" }}>
                             {results.map((r,i)=>(
-                              <div key={r.id} onClick={()=>setSelectedRecord(r)}
+                              <div key={r.id} onClick={()=>{ setSelectedRecord(r); const param = r.type==='policy'?`policy_ref=${encodeURIComponent(r.ref)}`:`customer_ref=${encodeURIComponent(r.ref)}`; fetch(`/api/pas-merge?${param}`).then(res=>res.json()).then(data=>setMergeData(data)).catch(()=>{}); }}
                                 style={{ padding:"12px 16px", borderBottom:i<results.length-1?`1px solid ${BD}`:"none", cursor:"pointer", display:"flex", justifyContent:"space-between", alignItems:"center", background:"#fff" }}>
                                 <div>
                                   <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:3, flexWrap:"wrap" }}>
@@ -1049,7 +1050,8 @@ Rules:
                       )}
                     </div>
                   )}
-                  {composeStep===3 && (()=>{ const letterBody = aiDraft || TEMPLATE_BODY; return (
+                  {composeStep===3 && (()=>{ const rawBody = aiDraft || TEMPLATE_BODY;
+          const letterBody = Object.entries(mergeData).reduce((body, [key, val]) => body.split(key).join(val), rawBody); return (
                     <div>
                       {/* Toolbar */}
                       <div style={{ display:"flex", gap:6, flexWrap:"wrap", marginBottom:12 }}>
