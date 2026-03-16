@@ -225,13 +225,6 @@ fetch("/api/users")
     .catch(() => {});
   }, []);
 
-  useEffect(() => {
-    if (searchQuery.length < 2) { setPasResults([]); return; }
-    fetch(`/api/pas-search?q=${encodeURIComponent(searchQuery)}&type=${searchType}`)
-      .then(r => r.json())
-      .then(data => setPasResults(Array.isArray(data) ? data : []))
-      .catch(() => setPasResults([]));
-  }, [searchQuery, searchType]);
     const [sideOpen, setSideOpen] = useState(true);
   const [toast, setToast] = useState(null);
   const [selTpl, setSelTpl] = useState(null);
@@ -248,6 +241,14 @@ const [templatesLoading, setTemplatesLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
  const [searchType, setSearchType] = useState("policy");
   const [pasResults, setPasResults] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (!searchQuery || searchQuery.length < 2) { setPasResults([]); return; }
+    fetch(`/api/pas-search?q=${encodeURIComponent(searchQuery)}&type=${searchType}`)
+      .then(r => r.json())
+      .then(data => setPasResults(Array.isArray(data) ? data : []))
+      .catch(() => setPasResults([]));
+  }, [searchQuery, searchType]);
     const [selectedRecord, setSelectedRecord] = useState(null);
   const [selectedParty, setSelectedParty] = useState(null);
   const [claimPartyStep, setClaimPartyStep] = useState(false);
