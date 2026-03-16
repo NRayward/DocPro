@@ -1077,17 +1077,17 @@ Rules:
                         {/* Letter body */}
                         <div style={{ padding:"20px 28px 16px" }}>
                           <div style={{ display:"flex", justifyContent:"space-between", marginBottom:16, fontSize:12, color:"#555", fontFamily:F }}>
-                            <span>Ref: <span style={{ background:ACL, color:AC, padding:"1px 4px", borderRadius:3, fontFamily:"monospace" }}>{"{{POLICY_NUMBER}}"}</span></span>
-                            <span>Date: <span style={{ background:ACL, color:AC, padding:"1px 4px", borderRadius:3, fontFamily:"monospace" }}>{"{{DATE}}"}</span></span>
+                            <span>Ref: <span style={{ background:mergeData["{{POLICY_NUMBER}}"]?ACL:"#f3f4f6", color:mergeData["{{POLICY_NUMBER}}"]?AC:"#374151", padding:"1px 4px", borderRadius:3, fontFamily:"monospace" }}>{mergeData["{{POLICY_NUMBER}}"] || "{{POLICY_NUMBER}}"}</span></span>
+                            <span>Date: <span style={{ background:ACL, color:AC, padding:"1px 4px", borderRadius:3, fontFamily:"monospace" }}>{new Date().toLocaleDateString("en-GB")}</span></span>
                           </div>
 
                           <div style={{ marginBottom:16, fontSize:12, lineHeight:1.7, fontFamily:F }}>
-                            <div style={{ background:ACL, color:AC, padding:"1px 4px", borderRadius:3, fontFamily:"monospace", display:"inline" }}>{"{{CUSTOMER_NAME}}"}</div><br/>
-                            <div style={{ background:ACL, color:AC, padding:"1px 4px", borderRadius:3, fontFamily:"monospace", display:"inline" }}>{"{{ADDRESS_LINE1}}"}</div><br/>
-                            <div style={{ background:ACL, color:AC, padding:"1px 4px", borderRadius:3, fontFamily:"monospace", display:"inline" }}>{"{{POSTCODE}}"}</div>
+                            <div style={{ fontWeight:600, color:"#1a1a1a" }}>{mergeData["{{CUSTOMER_NAME}}"] || <span style={{ background:ACL, color:AC, padding:"1px 4px", borderRadius:3, fontFamily:"monospace" }}>{"{{CUSTOMER_NAME}}"}</span>}</div>
+                            <div>{mergeData["{{ADDRESS_LINE1}}"] || <span style={{ background:ACL, color:AC, padding:"1px 4px", borderRadius:3, fontFamily:"monospace" }}>{"{{ADDRESS_LINE1}}"}</span>}</div>
+                            <div>{mergeData["{{POSTCODE}}"] || <span style={{ background:ACL, color:AC, padding:"1px 4px", borderRadius:3, fontFamily:"monospace" }}>{"{{POSTCODE}}"}</span>}</div>
                           </div>
 
-                          <p style={{ marginBottom:12, lineHeight:1.8 }}>Dear <span style={{ background:ACL, color:AC, padding:"1px 4px", borderRadius:3, fontFamily:"monospace", fontSize:12 }}>{"{{CUSTOMER_NAME}}"}</span>,</p>
+                          <p style={{ marginBottom:12, lineHeight:1.8 }}>Dear {mergeData["{{CUSTOMER_NAME}}"] || <span style={{ background:ACL, color:AC, padding:"1px 4px", borderRadius:3, fontFamily:"monospace", fontSize:12 }}>{"{{CUSTOMER_NAME}}"}</span>},</p>
 
                           {/* AI-generated or template body */}
                           {aiDraft ? (
@@ -1105,9 +1105,9 @@ Rules:
                             </div>
                           ) : (
                             <div>
-                              <p style={{ marginBottom:10, fontWeight:700, fontSize:13 }}>Re: Policy Renewal — <span style={{ background:ACL, color:AC, padding:"1px 4px", borderRadius:3, fontFamily:"monospace", fontSize:12 }}>{"{{POLICY_NUMBER}}"}</span></p>
+                              <p style={{ marginBottom:10, fontWeight:700, fontSize:13 }}>Re: Policy Renewal — {mergeData["{{POLICY_NUMBER}}"] || <span style={{ background:ACL, color:AC, padding:"1px 4px", borderRadius:3, fontFamily:"monospace", fontSize:12 }}>{"{{POLICY_NUMBER}}"}</span>}</p>
                               <p style={{ marginBottom:10, lineHeight:1.8 }}>
-                                Your policy is due for renewal on <span style={{ background:ACL, color:AC, padding:"1px 4px", borderRadius:3, fontFamily:"monospace", fontSize:12 }}>{"{{RENEWAL_DATE}}"}</span>. Your renewal premium is <span style={{ background:ACL, color:AC, padding:"1px 4px", borderRadius:3, fontFamily:"monospace", fontSize:12 }}>{"{{PREMIUM_AMOUNT}}"}</span>.
+                                Your policy is due for renewal on {mergeData["{{RENEWAL_DATE}}"] || <span style={{ background:ACL, color:AC, padding:"1px 4px", borderRadius:3, fontFamily:"monospace", fontSize:12 }}>{"{{RENEWAL_DATE}}"}</span>}. Your renewal premium is {mergeData["{{PREMIUM_AMOUNT}}"] || <span style={{ background:ACL, color:AC, padding:"1px 4px", borderRadius:3, fontFamily:"monospace", fontSize:12 }}>{"{{PREMIUM_AMOUNT}}"}</span>}.
                               </p>
                               <p style={{ marginBottom:16, lineHeight:1.8, color:"#444" }}>
                                 To accept your renewal, please contact us on 0121 000 0000 or visit your online account. If you have any questions, our team is happy to help.
