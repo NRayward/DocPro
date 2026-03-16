@@ -226,12 +226,12 @@ fetch("/api/users")
   }, []);
 
   useEffect(() => {
-    if (searchQuery.length < 2) { setPasResults([]); return; }
+    if (!searchQuery || searchQuery.length < 2) { setPasResults([]); return; }
     fetch(`/api/pas-search?q=${encodeURIComponent(searchQuery)}&type=${searchType}`)
       .then(r => r.json())
       .then(data => setPasResults(Array.isArray(data) ? data : []))
       .catch(() => setPasResults([]));
- }, []);
+  }, [searchQuery, searchType]);
 
   useEffect(() => {
     if (searchQuery.length < 2) { setPasResults([]); return; }
@@ -239,8 +239,9 @@ fetch("/api/users")
       .then(r => r.json())
       .then(data => setPasResults(Array.isArray(data) ? data : []))
       .catch(() => setPasResults([]));
-  }, [searchQuery, searchType]);
-  const [sideOpen, setSideOpen] = useState(true);
+ }, []);
+
+    const [sideOpen, setSideOpen] = useState(true);
   const [toast, setToast] = useState(null);
   const [selTpl, setSelTpl] = useState(null);
   const [tSearch, setTSearch] = useState("");
