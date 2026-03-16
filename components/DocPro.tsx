@@ -222,16 +222,15 @@ useEffect(() => {
 fetch("/api/users")
     .then(r => r.json())
     .then(data => setRealUsers(Array.isArray(data) ? data : []))
-    .catch(() => {});
-  }, []);
+          .catch(() => setPasResults([]));
+  }, [searchQuery, searchType]);
   useEffect(() => {
     if (searchQuery.length < 2) { setPasResults([]); return; }
     fetch(`/api/pas-search?q=${encodeURIComponent(searchQuery)}&type=${searchType}`)
       .then(r => r.json())
       .then(data => setPasResults(Array.isArray(data) ? data : []))
-      .catch(() => setPasResults([]));
- }, []);
-
+        .catch(() => setPasResults([]));
+  }, [searchQuery, searchType]);
     const [sideOpen, setSideOpen] = useState(true);
   const [toast, setToast] = useState(null);
   const [selTpl, setSelTpl] = useState(null);
