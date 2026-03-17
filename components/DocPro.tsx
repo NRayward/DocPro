@@ -250,6 +250,28 @@ const [templatesLoading, setTemplatesLoading] = useState(false);
       .then(data => setPasResults(Array.isArray(data) ? data : []))
       .catch(() => setPasResults([]));
   }, [searchQuery, searchType]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const policyRef = params.get("policy");
+    if (!policyRef) return;
+    setNav("compose");
+    setSearchType("policy");
+    setSearchQuery(policyRef);
+    fetch(`/api/pas-search?q=${encodeURIComponent(policyRef)}&type=policy`)
+      .then(r => r.json())
+      .then(data => {
+        if (data && data.length > 0) {
+          const rec = data[0];
+          setSelectedRecord(rec);
+          fetch(`/api/pas-merge?policy_ref=${encodeURIComponent(rec.ref)}`)
+            .then(r => r.json())
+            .then(merge => setMergeData(merge))
+            .catch(() => {});
+        }
+      }).catch(() => {});
+  }, []);
     const [selectedRecord, setSelectedRecord] = useState(null);
   const [selectedParty, setSelectedParty] = useState(null);
   const [claimPartyStep, setClaimPartyStep] = useState(false);
@@ -1544,7 +1566,7 @@ ${letterBody}`
 
                       <div style={{ display:"flex", gap:10 }}>
                         <button onClick={async ()=>{ try { await fetch("/api/documents",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({associated_type:searchType,associated_ref:selectedRecord?.ref||null,associated_name:selectedRecord?.name||null,party_name:selectedParty?.name||null,party_role:selectedParty?.role||null,letter_body:aiDraft,compose_mode:composeMode,language:transLang||"en",status:"dispatched"})}); } catch(e) {} if(distChannels.includes("wa")){
-   fetch("/api/generate-pdf",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({letterBody:Object.entries(mergeData).reduce((b,[k,v])=>b.split(k).join(v),aiDraft||TEMPLATE_BODY),documentId:Date.now()})}).then(r=>r.json()).then(pdf=>{ fetch("/api/whatsapp",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({to:"+447825806679",message:"Please find your document from RDT Limited attached.",mediaUrl:pdf.url})}).then(r=>r.json()).then(d=>console.log("WA:",d)).catch(e=>console.error("WA:",e)); }).catch(e=>console.error("PDF:",e));
+   fetch("/api/generate-pdf",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({letterBody:aiDraft||TEMPLATE_BODY,documentId:Date.now()})}).then(r=>r.json()).then(pdf=>{ fetch("/api/whatsapp",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({to:"+447825806679",message:"Please find your document from RDT Limited attached.",mediaUrl:pdf.url})}).then(r=>r.json()).then(d=>console.log("WA:",d)).catch(e=>console.error("WA:",e)); }).catch(e=>console.error("PDF:",e));
 }
 notify("Job queued for dispatch"); setComposeStep(1);setDistChannels([]);setDistSchedule("immediate");setAiDraft("");setAiPrompt("");setAiPurpose("");setAiRecipient("");setComposeMode("template");setSelectedRecord(null);setSearchQuery("");setSelectedParty(null);setClaimPartyStep(false);setTransLang("");setTransOpen(false);setCSearch("");setCCat("All");}} style={{ ...bP, flex:1 }}>
                           Confirm &amp; Dispatch
