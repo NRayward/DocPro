@@ -320,7 +320,7 @@ const [templatesLoading, setTemplatesLoading] = useState(false);
       {/* Sidebar */}
       <aside style={{ width:sideOpen?224:56, minHeight:"100vh", background:SIDEBAR, borderRight:"none", display:"flex", flexDirection:"column", transition:"width 0.2s", flexShrink:0, overflow:"hidden" }}>
         <div style={{ height:82, display:"flex", alignItems:"center", justifyContent:sideOpen?"flex-start":"center", padding:0, borderBottom:"1px solid rgba(255,255,255,0.08)", flexShrink:0, background:"#fff", gap:0, overflow:"hidden" }}>
-          <img src={RDT_LOGO} alt="RDT" style={{ height:82, width:"100%", objectFit:"cover", objectPosition:"left center", display:"block", flexShrink:0 }} />
+          <img src={RDT_LOGO} alt="RDT" style={{ height:sideOpen?70:57, width:sideOpen?210:66, objectFit:"contain", display:"block", flexShrink:0 }} />
         </div>
         <nav style={{ flex:1, padding:"8px 6px", overflowY:"auto" }}>
           {/* ── Compose CTA ── */}
