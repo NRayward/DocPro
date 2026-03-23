@@ -6,25 +6,30 @@ const client = new Anthropic()
 export async function POST(req: Request) {
   const { prompt, tone, recipient } = await req.json()
 
+  if (!prompt || !recipient) {
+    return NextResponse.json({ error: 'prompt and recipient are required' }, { status: 400 })
+  }
+
   const message = await client.messages.create({
-    model: 'claude-sonnet-4-20250514',
+    model: 'claude-sonnet-4-6',
     max_tokens: 1024,
     messages: [{
       role: 'user',
-      content: `You are a professional insurance correspondence writer for RDT Limited.
-      
-Write the BODY CONTENT ONLY of a letter based on the following:
+      content: `You are a professional insurance correspondence writer for RDT Limited, an insurance technology company based in Birmingham, UK.
+
+Write the BODY CONTENT ONLY of a letter based on the following instructions:
 
 Recipient: ${recipient}
-Tone: ${tone}
+Tone: ${tone || 'professional'}
 Instructions: ${prompt}
 
 Rules:
 - Start with "Dear {{CUSTOMER_NAME}},"
-- Use merge fields like {{POLICY_NUMBER}}, {{RENEWAL_DATE}}, {{PREMIUM_AMOUNT}}
+- Where relevant, use merge fields in double curly braces: {{POLICY_NUMBER}}, {{RENEWAL_DATE}}, {{PREMIUM_AMOUNT}}, {{NCD_YEARS}}, {{CLAIM_REFERENCE}}
 - Write 2-4 concise paragraphs
 - End with "Yours sincerely,"
-- Plain text only, no markdown`
+- Do NOT include letterhead, address block, signature block or date — those are added automatically
+- Plain text only, no markdown, no bullet points`
     }]
   })
 

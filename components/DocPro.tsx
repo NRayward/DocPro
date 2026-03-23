@@ -952,34 +952,14 @@ const [templatesLoading, setTemplatesLoading] = useState(false);
                               setAiGenerating(true);
                               setAiDraft("");
                               try {
-                                const res = await fetch("https://api.anthropic.com/v1/messages",{
+                                const res = await fetch("/api/ai/generate",{
                                   method:"POST",
                                   headers:{"Content-Type":"application/json"},
-                                  body:JSON.stringify({
-                                    model:"claude-sonnet-4-20250514",
-                                    max_tokens:1000,
-                                    messages:[{
-                                      role:"user",
-                                      content:`You are a professional insurance correspondence writer for RDT Limited, an insurance technology company based in Birmingham, UK.
-
-Write the BODY CONTENT ONLY of a letter based on the following instructions:
-
-Recipient: ${aiRecipient}
-Tone: ${aiTone}
-Instructions: ${aiPrompt}
-
-Rules:
-- Start with "Dear {{CUSTOMER_NAME}},"
-- Where relevant, use merge fields in double curly braces: {{POLICY_NUMBER}}, {{RENEWAL_DATE}}, {{PREMIUM_AMOUNT}}, {{NCD_YEARS}}, {{CLAIM_REFERENCE}}
-- Write 2-4 concise paragraphs
-- End with "Yours sincerely,"
-- Do NOT include letterhead, address block, signature block or date — those are added automatically
-- Plain text only, no markdown, no bullet points`
-                                    }]
-                                  })
+                                  body:JSON.stringify({ prompt: aiPrompt, tone: aiTone, recipient: aiRecipient })
                                 });
                                 const data = await res.json();
-                                const text = data.content?.find(b=>b.type==="text")?.text || "";
+                                const text = data.text || "";
+                                if (!text) throw new Error("Empty response");
                                 setAiDraft(text);
                                 notify("Draft generated — review and edit below");
                               } catch(e) {
@@ -1218,32 +1198,14 @@ Rules:
                                 const targetLang = langNames[transLang]||transLang;
                                 setTransGenerating(true);
                                 try {
-                                  const res = await fetch("https://api.anthropic.com/v1/messages",{
+                                  const res = await fetch("/api/ai/translate",{
                                     method:"POST",
                                     headers:{"Content-Type":"application/json"},
-                                    body:JSON.stringify({
-                                      model:"claude-sonnet-4-20250514",
-                                      max_tokens:1200,
-                                      messages:[{
-                                        role:"user",
-                                        content:`You are a professional translator specialising in insurance and legal correspondence.
-
-Translate the following insurance letter into ${targetLang}.
-
-Rules:
-- Translate ALL natural language text into ${targetLang}
-- Keep ALL merge fields EXACTLY as they are in double curly braces, e.g. {{CUSTOMER_NAME}}, {{POLICY_NUMBER}} — do NOT translate these
-- Keep "Dear {{CUSTOMER_NAME}}," and "Yours sincerely," translated into ${targetLang} equivalents
-- Maintain a professional, formal tone appropriate for insurance correspondence
-- Output ONLY the translated letter body — no explanations, no preamble
-
-Letter to translate:
-${letterBody}`
-                                      }]
-                                    })
+                                    body:JSON.stringify({ letter: letterBody, language: targetLang })
                                   });
                                   const data = await res.json();
-                                  const translated = data.content?.find(b=>b.type==="text")?.text||"";
+                                  const translated = data.text || "";
+                                  if (!translated) throw new Error("Empty response");
                                   setAiDraft(translated);
                                   notify(`Letter translated to ${targetLang}`);
                                   setTransOpen(false);
