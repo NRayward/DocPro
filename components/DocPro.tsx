@@ -320,7 +320,7 @@ const [templatesLoading, setTemplatesLoading] = useState(false);
       {/* Sidebar */}
       <aside style={{ width:sideOpen?224:56, minHeight:"100vh", background:SIDEBAR, borderRight:"none", display:"flex", flexDirection:"column", transition:"width 0.2s", flexShrink:0, overflow:"hidden" }}>
         <div style={{ height:82, display:"flex", alignItems:"center", justifyContent:sideOpen?"flex-start":"center", padding:0, borderBottom:"1px solid rgba(255,255,255,0.08)", flexShrink:0, background:"#fff", gap:0, overflow:"hidden" }}>
-          <img src={RDT_LOGO} alt="RDT" style={{ height:sideOpen?70:57, width:sideOpen?210:66, objectFit:"contain", display:"block", flexShrink:0 }} />
+          <img src={RDT_LOGO} alt="RDT" style={{ height:sideOpen?70:57, width:sideOpen?210:66, objectFit:"contain", display:"block", flexShrink:0, margin:"auto" }} />
         </div>
         <nav style={{ flex:1, padding:"8px 6px", overflowY:"auto" }}>
           {/* ── Compose CTA ── */}
@@ -340,7 +340,9 @@ const [templatesLoading, setTemplatesLoading] = useState(false);
                 fontFamily:F,
                 fontWeight:700,
                 fontSize:13,
-                background: AC,
+                background: nav==="compose"
+                  ? "linear-gradient(135deg,#3a5be0 0%,#6a3fd1 100%)"
+                  : "linear-gradient(135deg,#4f6ef7 0%,#7c5cf6 100%)",
                 color:"#fff",
                 boxShadow: nav==="compose"
                   ? "0 4px 14px rgba(79,110,247,0.55)"
@@ -653,13 +655,13 @@ const [templatesLoading, setTemplatesLoading] = useState(false);
             <div>
               <PH title="Document Composer" sub="Create, customise and prepare documents for dispatch" />
               <div style={{ display:"flex", gap:6, marginBottom:20 }}>
-                {["1 Search","2 Template","3 Content","4 Recipients","5 Distribution","6 Review"].map((s,i) => (
+                {["1 Search","2 Template","3 Content","4 Distribution","5 Review"].map((s,i) => (
                   <div key={i} style={{ flex:1, padding:"10px 14px", borderRadius:8, background:composeStep===i+1?AC:composeStep>i+1?GL:PG, color:composeStep===i+1?"#fff":composeStep>i+1?GR:TM, fontSize:12, fontWeight:600, textAlign:"center", cursor:"pointer" }} onClick={()=>setComposeStep(i+1)}>{s}</div>
                 ))}
               </div>
               <div style={{ display:"grid", gridTemplateColumns:"1fr 280px", gap:16 }}>
                 <Cd style={{ padding:20 }}>
-                  <SL>Step {composeStep} of 6</SL>
+                  <SL>Step {composeStep} of 5</SL>
                   {/* ── STEP 1: Search ── */}
                   {composeStep===1 && (
                     <div>
@@ -1241,22 +1243,9 @@ const [templatesLoading, setTemplatesLoading] = useState(false);
                       </div>
                     </div>
                   )})()}
-                  {composeStep===4 && (
-                    <div>
-                      <div style={{ marginBottom:12 }}>
-                        <label style={{ fontSize:12, color:TS, display:"block", marginBottom:5 }}>Recipient source</label>
-                        <select style={iS}><option>PAS extract — all renewing policies</option><option>Manual upload (CSV)</option><option>Single recipient</option></select>
-                      </div>
-                      <div style={{ background:PG, borderRadius:8, padding:14, fontSize:13, marginBottom:12 }}>
-                        <div style={{ fontWeight:600, marginBottom:4 }}>Preview count</div>
-                        <div style={{ fontSize:24, fontWeight:700, color:AC }}>4,200</div>
-                        <div style={{ fontSize:12, color:TM }}>recipients matched</div>
-                      </div>
-                      <button onClick={()=>setComposeStep(5)} style={{ ...bP, width:"100%" }}>Confirm Recipients</button>
-                    </div>
-                  )}
 
-                  {composeStep===5 && (
+
+                  {composeStep===4 && (
                     <div>
                       <div style={{ fontSize:14, fontWeight:600, marginBottom:4 }}>Select distribution channels</div>
                       <div style={{ fontSize:12, color:TM, marginBottom:16 }}>Choose how this letter will be delivered to recipients</div>
@@ -1487,14 +1476,14 @@ const [templatesLoading, setTemplatesLoading] = useState(false);
                       )}
 
                       <button
-                        onClick={()=>{ if(!distChannels.length){notify("Please select at least one channel","error");return;} setComposeStep(6); }}
+                        onClick={()=>{ if(!distChannels.length){notify("Please select at least one channel","error");return;} setComposeStep(5); }}
                         style={{ ...bP, width:"100%", opacity:distChannels.length?1:0.5 }}>
                         Confirm Distribution
                       </button>
                     </div>
                   )}
 
-                  {composeStep===6 && (
+                  {composeStep===5 && (
                     <div>
                       {/* Summary card */}
                       <div style={{ background:GL, borderRadius:8, padding:16, marginBottom:14, borderLeft:`4px solid ${GR}` }}>
@@ -1507,7 +1496,7 @@ const [templatesLoading, setTemplatesLoading] = useState(false);
                           ["Associated",  selectedRecord ? `${selectedRecord.name} · ${selectedRecord.ref}` : "No record associated"],
                           ...(selectedParty ? [["Party", `${selectedParty.name} · ${selectedParty.role}`]] : []),
                           ["Template",  "Policy Renewal Notice v3.2"],
-                          ["Recipients","4,200 · PAS extract"],
+                          ["Recipients", selectedRecord ? selectedRecord.ref || selectedRecord.name : "From associated record"],
                           ["Channels",  distChannels.length ? distChannels.map(c=>c.charAt(0).toUpperCase()+c.slice(1)).join(", ") : "—"],
                           ["Schedule",  distSchedule==="immediate"?"Send immediately":distSchedule==="scheduled"?"Scheduled":"Pending approval"],
                           ["Prepared by","", (()=>{ const u=realUsers.find((u:any)=>u.email===userEmail); const name=u?.name||userEmail; const role=ROLES.find((r:any)=>r.id===u?.role)?.label||"Doc Administrator"; return `${name} · ${role}`; })()],
@@ -1536,7 +1525,7 @@ const [templatesLoading, setTemplatesLoading] = useState(false);
 notify("Job queued for dispatch"); setComposeStep(1);setDistChannels([]);setDistSchedule("immediate");setAiDraft("");setAiPrompt("");setAiPurpose("");setAiRecipient("");setComposeMode("template");setSelectedRecord(null);setSearchQuery("");setSelectedParty(null);setClaimPartyStep(false);setTransLang("");setTransOpen(false);setCSearch("");setCCat("All");}} style={{ ...bP, flex:1 }}>
                           Confirm &amp; Dispatch
                         </button>
-                        <button onClick={()=>setComposeStep(5)} style={bS}>Back</button>
+                        <button onClick={()=>setComposeStep(4)} style={bS}>Back</button>
                       </div>
                     </div>
                   )}
