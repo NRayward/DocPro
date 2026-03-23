@@ -3,12 +3,11 @@
 import { useState, useEffect } from "react";
 import { createClient } from "@supabase/supabase-js";
 
-const AC = "#f97316"; const ACL = "#fff7ed"; const PG = "#f4f5f7"; const CB = "#ffffff";
-const BD = "#e5e7eb"; const TP = "#111827"; const TS = "#6b7280"; const TM = "#9ca3af";
-const GR = "#059669"; const GL = "#ecfdf5"; const AM = "#d97706"; const AL = "#fffbeb";
-const RD = "#dc2626"; const RL = "#fef2f2"; const PU = "#7c3aed"; const PL = "#f5f3ff";
-const OR = "#f97316"; const OL = "#fff7ed";
-const SIDEBAR = "#1e2433";
+const AC = "#4f6ef7"; const ACL = "#eef1fe"; const PG = "#f0f2f5"; const CB = "#ffffff";
+const BD = "#e5e8ef"; const TP = "#1a1f2e"; const TS = "#6b7280"; const TM = "#9ca3af";
+const GR = "#22c55e"; const GL = "#dcfce7"; const AM = "#f59e0b"; const AL = "#fef3c7";
+const RD = "#ef4444"; const RL = "#fee2e2"; const PU = "#8b5cf6"; const PL = "#ede9fe";
+const OR = "#f97316"; const OL = "#ffedd5";
 const F = "'Inter', system-ui, sans-serif";
 const bP = { padding:"8px 18px", borderRadius:7, fontSize:13, cursor:"pointer", fontFamily:F, fontWeight:600, background:AC, color:"#fff", border:"none", whiteSpace:"nowrap" };
 const bS = { padding:"8px 18px", borderRadius:7, fontSize:13, cursor:"pointer", fontFamily:F, fontWeight:500, background:"#fff", color:TS, border:`1px solid ${BD}`, whiteSpace:"nowrap" };
@@ -255,6 +254,34 @@ const [templatesLoading, setTemplatesLoading] = useState(false);
   useEffect(() => {
     if (typeof window === "undefined") return;
     const params = new URLSearchParams(window.location.search);
+
+    // Handle ?claim=CLM-XXXXX — auto-select claim and jump to step 2
+    const claimRef = params.get("claim");
+    if (claimRef) {
+      setNav("compose");
+      setSearchType("claim");
+      setSearchQuery(claimRef);
+      fetch(`/api/pas-search?q=${encodeURIComponent(claimRef)}&type=claim`)
+        .then(r => r.json())
+        .then(data => {
+          if (data && data.length > 0) {
+            const rec = data[0];
+            setSelectedRecord(rec);
+            // Auto-select Policyholder as the party
+            const knownParties = (CLAIM_PARTIES as any)[rec.ref];
+            const policyholder = knownParties
+              ? knownParties.find((p: any) => p.role === "Policyholder") || knownParties[0]
+              : { id: "p1", role: "Policyholder", name: rec.name, contact: "", phone: "", address: "" };
+            setSelectedParty(policyholder);
+            setClaimPartyStep(true);
+            // Jump straight to step 2 — template selection
+            setComposeStep(2);
+          }
+        }).catch(() => {});
+      return;
+    }
+
+    // Handle ?policy=POL-XXXXX
     const policyRef = params.get("policy");
     if (!policyRef) return;
     setNav("compose");
@@ -290,7 +317,6 @@ const [templatesLoading, setTemplatesLoading] = useState(false);
   const [distSchedule, setDistSchedule] = useState("immediate");
   const [emailConfig, setEmailConfig] = useState({ source:"pas", manualList:"", subject:"Your Policy Renewal – Action Required", fromName:"RDT Limited", fromEmail:"noreply@rdtltd.com", replyTo:"renewals@rdtltd.com", format:"attachment", testEmail:"" });
   const [emailTab, setEmailTab] = useState("recipients");
-  const [waPhone, setWaPhone] = useState("");
   const [bulkPct, setBulkPct] = useState(0);
   const [bulkRun, setBulkRun] = useState(false);
   // user admin
@@ -319,13 +345,13 @@ const [templatesLoading, setTemplatesLoading] = useState(false);
       )}
 
       {/* Sidebar */}
-      <aside style={{ width:sideOpen?224:56, minHeight:"100vh", background:SIDEBAR, borderRight:"none", display:"flex", flexDirection:"column", transition:"width 0.2s", flexShrink:0, overflow:"hidden" }}>
-        <div style={{ height:82, display:"flex", alignItems:"center", justifyContent:sideOpen?"flex-start":"center", padding:0, borderBottom:"1px solid rgba(255,255,255,0.08)", flexShrink:0, background:"#fff", gap:0, overflow:"hidden" }}>
-          <img src={RDT_LOGO} alt="RDT" style={{ height:sideOpen?70:57, width:sideOpen?210:66, objectFit:"contain", display:"block", flexShrink:0, margin:"auto" }} />
+      <aside style={{ width:sideOpen?224:56, minHeight:"100vh", background:"#fff", borderRight:`1px solid ${BD}`, display:"flex", flexDirection:"column", transition:"width 0.2s", flexShrink:0, overflow:"hidden" }}>
+        <div style={{ height:82, display:"flex", alignItems:"center", justifyContent:sideOpen?"flex-start":"center", padding:sideOpen?"0 16px":"0 8px", borderBottom:`1px solid ${BD}`, flexShrink:0, background:"#fff", gap:8 }}>
+          <img src={RDT_LOGO} alt="RDT" style={{ height:sideOpen?70:57, width:sideOpen?210:66, objectFit:"contain", display:"block", flexShrink:0 }} />
         </div>
         <nav style={{ flex:1, padding:"8px 6px", overflowY:"auto" }}>
           {/* ── Compose CTA ── */}
-          <div style={{ padding:"8px 2px 10px", borderBottom:"1px solid rgba(255,255,255,0.08)", marginBottom:8 }}>
+          <div style={{ padding:"8px 2px 10px", borderBottom:`1px solid ${BD}`, marginBottom:8 }}>
             <button
               onClick={()=>setNav("compose")}
               style={{
@@ -357,21 +383,21 @@ const [templatesLoading, setTemplatesLoading] = useState(false);
           </div>
           {topItems.map(item => {
             const active = nav===item.id;
-            return <button key={item.id} onClick={()=>setNav(item.id)} style={{ width:"100%", display:"flex", alignItems:"center", gap:8, padding:"8px 10px", borderRadius:7, border:"none", cursor:"pointer", background:active?AC:"transparent", color:active?"#fff":"rgba(255,255,255,0.5)", fontSize:13, fontFamily:F, fontWeight:active?600:400, marginBottom:1, textAlign:"left" }}>
+            return <button key={item.id} onClick={()=>setNav(item.id)} style={{ width:"100%", display:"flex", alignItems:"center", gap:8, padding:"8px 10px", borderRadius:7, border:"none", cursor:"pointer", background:active?`${AC}12`:"transparent", color:active?AC:TS, fontSize:13, fontFamily:F, fontWeight:active?600:400, marginBottom:1, textAlign:"left" }}>
               <span style={{ width:18, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>{ICONS[item.id]}</span>
               {sideOpen && <span style={{ flex:1 }}>{item.label}</span>}
-              {sideOpen && item.badge && <span style={{ background:active?"rgba(255,255,255,0.2)":"rgba(255,255,255,0.1)", color:"#fff", fontSize:10, padding:"1px 6px", borderRadius:20, fontWeight:600 }}>{item.badge}</span>}
+              {sideOpen && item.badge && <span style={{ background:active?`${AC}20`:"rgba(0,0,0,0.06)", color:active?AC:TS, fontSize:10, padding:"1px 6px", borderRadius:20, fontWeight:600 }}>{item.badge}</span>}
             </button>;
           })}
           {secs.map(sec => (
             <div key={sec} style={{ marginTop:12 }}>
-              {sideOpen && <div style={{ fontSize:10, color:"rgba(255,255,255,0.4)", fontWeight:600, letterSpacing:"0.08em", padding:"4px 10px 2px", textTransform:"uppercase" as const }}>{sec}</div>}
+              {sideOpen && <div style={{ fontSize:10, color:"#b0b7c3", fontWeight:600, letterSpacing:"0.08em", padding:"4px 10px 2px" }}>{sec}</div>}
               {navBySec(sec).map(item => {
                 const active = nav===item.id;
-                return <button key={item.id} onClick={()=>setNav(item.id)} style={{ width:"100%", display:"flex", alignItems:"center", gap:8, padding:"8px 10px", borderRadius:7, border:"none", cursor:"pointer", background:active?AC:"transparent", color:active?"#fff":"rgba(255,255,255,0.5)", fontSize:13, fontFamily:F, fontWeight:active?600:400, marginBottom:1, textAlign:"left" }}>
+                return <button key={item.id} onClick={()=>setNav(item.id)} style={{ width:"100%", display:"flex", alignItems:"center", gap:8, padding:"8px 10px", borderRadius:7, border:"none", cursor:"pointer", background:active?`${AC}12`:"transparent", color:active?AC:TS, fontSize:13, fontFamily:F, fontWeight:active?600:400, marginBottom:1, textAlign:"left" }}>
                   <span style={{ width:18, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>{ICONS[item.id]}</span>
                   {sideOpen && <span style={{ flex:1 }}>{item.label}</span>}
-                  {sideOpen && item.badge && <span style={{ background:active?"rgba(255,255,255,0.2)":"rgba(255,255,255,0.1)", color:"#fff", fontSize:10, padding:"1px 6px", borderRadius:20, fontWeight:600 }}>{item.badge}</span>}
+                  {sideOpen && item.badge && <span style={{ background:active?`${AC}20`:"rgba(0,0,0,0.06)", color:active?AC:TS, fontSize:10, padding:"1px 6px", borderRadius:20, fontWeight:600 }}>{item.badge}</span>}
                 </button>;
               })}
             </div>
@@ -393,9 +419,7 @@ const [templatesLoading, setTemplatesLoading] = useState(false);
         <header style={{ height:60, background:"#fff", borderBottom:`1px solid ${BD}`, display:"flex", alignItems:"center", padding:"0 24px", gap:12, flexShrink:0 }}>
           <div style={{ flex:1, fontSize:13, color:TM }}>DocPro <span style={{ color:BD }}>›</span> <span style={{ color:TP, fontWeight:600 }}>{nav==="compose" ? "Compose Letter" : NAV_ITEMS.find(i=>i.id===nav)?.label}</span></div>
           <span style={{ background:GL, color:"#16a34a", fontSize:11, padding:"3px 10px", borderRadius:20, fontWeight:600 }}>● Live</span>
-          <div title={userEmail} style={{ width:32, height:32, borderRadius:"50%", background:`${AC}20`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:12, fontWeight:700, color:AC }}>
-            {(()=>{ const u=realUsers.find((u:any)=>u.email===userEmail); const name=u?.name||userEmail; return name.split(" ").map((w:string)=>w[0]).join("").slice(0,2).toUpperCase()||"?"; })()}
-          </div>
+          <div style={{ width:32, height:32, borderRadius:"50%", background:`${AC}20`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:12, fontWeight:700, color:AC }}>SK</div>
         </header>
 
         <main style={{ flex:1, overflowY:"auto", padding:24 }}>
@@ -656,13 +680,13 @@ const [templatesLoading, setTemplatesLoading] = useState(false);
             <div>
               <PH title="Document Composer" sub="Create, customise and prepare documents for dispatch" />
               <div style={{ display:"flex", gap:6, marginBottom:20 }}>
-                {["1 Search","2 Template","3 Content","4 Distribution","5 Review"].map((s,i) => (
+                {["1 Search","2 Template","3 Content","4 Recipients","5 Distribution","6 Review"].map((s,i) => (
                   <div key={i} style={{ flex:1, padding:"10px 14px", borderRadius:8, background:composeStep===i+1?AC:composeStep>i+1?GL:PG, color:composeStep===i+1?"#fff":composeStep>i+1?GR:TM, fontSize:12, fontWeight:600, textAlign:"center", cursor:"pointer" }} onClick={()=>setComposeStep(i+1)}>{s}</div>
                 ))}
               </div>
               <div style={{ display:"grid", gridTemplateColumns:"1fr 280px", gap:16 }}>
                 <Cd style={{ padding:20 }}>
-                  <SL>Step {composeStep} of 5</SL>
+                  <SL>Step {composeStep} of 6</SL>
                   {/* ── STEP 1: Search ── */}
                   {composeStep===1 && (
                     <div>
@@ -956,14 +980,34 @@ const [templatesLoading, setTemplatesLoading] = useState(false);
                               setAiGenerating(true);
                               setAiDraft("");
                               try {
-                                const res = await fetch("/api/ai/generate",{
+                                const res = await fetch("https://api.anthropic.com/v1/messages",{
                                   method:"POST",
                                   headers:{"Content-Type":"application/json"},
-                                  body:JSON.stringify({ prompt:aiPrompt, tone:aiTone, recipient:aiRecipient })
+                                  body:JSON.stringify({
+                                    model:"claude-sonnet-4-20250514",
+                                    max_tokens:1000,
+                                    messages:[{
+                                      role:"user",
+                                      content:`You are a professional insurance correspondence writer for RDT Limited, an insurance technology company based in Birmingham, UK.
+
+Write the BODY CONTENT ONLY of a letter based on the following instructions:
+
+Recipient: ${aiRecipient}
+Tone: ${aiTone}
+Instructions: ${aiPrompt}
+
+Rules:
+- Start with "Dear {{CUSTOMER_NAME}},"
+- Where relevant, use merge fields in double curly braces: {{POLICY_NUMBER}}, {{RENEWAL_DATE}}, {{PREMIUM_AMOUNT}}, {{NCD_YEARS}}, {{CLAIM_REFERENCE}}
+- Write 2-4 concise paragraphs
+- End with "Yours sincerely,"
+- Do NOT include letterhead, address block, signature block or date — those are added automatically
+- Plain text only, no markdown, no bullet points`
+                                    }]
+                                  })
                                 });
                                 const data = await res.json();
-                                const text = data.text || "";
-                                if(!text) throw new Error("Empty response");
+                                const text = data.content?.find(b=>b.type==="text")?.text || "";
                                 setAiDraft(text);
                                 notify("Draft generated — review and edit below");
                               } catch(e) {
@@ -1122,21 +1166,19 @@ const [templatesLoading, setTemplatesLoading] = useState(false);
                           )}
                           <p style={{ marginBottom:20, marginTop:16, lineHeight:1.8 }}>Yours sincerely,</p>
 
-                          {/* Signature block — current user */}
-                          {(()=>{ const u=realUsers.find((u:any)=>u.email===userEmail); const name=u?.name||userEmail; const role=ROLES.find((r:any)=>r.id===u?.role)?.label||"Doc Administrator"; return (
+                          {/* Signature block */}
                           <div style={{ borderTop:`1px solid ${BD}`, paddingTop:14, display:"flex", justifyContent:"space-between", alignItems:"flex-end" }}>
                             <div>
-                              <div style={{ fontSize:16, fontStyle:"italic", color:"#333", marginBottom:4, fontFamily:"Georgia, serif" }}>{name}</div>
-                              <div style={{ fontSize:12, fontWeight:600, color:TP, fontFamily:F }}>{name}</div>
-                              <div style={{ fontSize:11, color:TS, fontFamily:F }}>{role}</div>
+                              <div style={{ fontSize:16, fontStyle:"italic", color:"#333", marginBottom:4, fontFamily:"Georgia, serif" }}>Sarah Kent</div>
+                              <div style={{ fontSize:12, fontWeight:600, color:TP, fontFamily:F }}>Sarah Kent</div>
+                              <div style={{ fontSize:11, color:TS, fontFamily:F }}>Doc Administrator</div>
                               <div style={{ fontSize:11, color:TS, fontFamily:F }}>RDT Limited</div>
                             </div>
                             <div style={{ textAlign:"right", fontSize:10, color:TM, fontFamily:F, lineHeight:1.6 }}>
-                              <div>{userEmail}</div>
+                              <div>s.kent@rdtltd.com</div>
                               <div>0121 000 0000</div>
                             </div>
                           </div>
-                          ); })()}
                         </div>
 
                         {/* Letter footer */}
@@ -1204,14 +1246,32 @@ const [templatesLoading, setTemplatesLoading] = useState(false);
                                 const targetLang = langNames[transLang]||transLang;
                                 setTransGenerating(true);
                                 try {
-                                  const res = await fetch("/api/ai/translate",{
+                                  const res = await fetch("https://api.anthropic.com/v1/messages",{
                                     method:"POST",
                                     headers:{"Content-Type":"application/json"},
-                                    body:JSON.stringify({ letter:letterBody, language:targetLang })
+                                    body:JSON.stringify({
+                                      model:"claude-sonnet-4-20250514",
+                                      max_tokens:1200,
+                                      messages:[{
+                                        role:"user",
+                                        content:`You are a professional translator specialising in insurance and legal correspondence.
+
+Translate the following insurance letter into ${targetLang}.
+
+Rules:
+- Translate ALL natural language text into ${targetLang}
+- Keep ALL merge fields EXACTLY as they are in double curly braces, e.g. {{CUSTOMER_NAME}}, {{POLICY_NUMBER}} — do NOT translate these
+- Keep "Dear {{CUSTOMER_NAME}}," and "Yours sincerely," translated into ${targetLang} equivalents
+- Maintain a professional, formal tone appropriate for insurance correspondence
+- Output ONLY the translated letter body — no explanations, no preamble
+
+Letter to translate:
+${letterBody}`
+                                      }]
+                                    })
                                   });
                                   const data = await res.json();
-                                  const translated = data.text || "";
-                                  if(!translated) throw new Error("Empty response");
+                                  const translated = data.content?.find(b=>b.type==="text")?.text||"";
                                   setAiDraft(translated);
                                   notify(`Letter translated to ${targetLang}`);
                                   setTransOpen(false);
@@ -1244,9 +1304,22 @@ const [templatesLoading, setTemplatesLoading] = useState(false);
                       </div>
                     </div>
                   )})()}
-
-
                   {composeStep===4 && (
+                    <div>
+                      <div style={{ marginBottom:12 }}>
+                        <label style={{ fontSize:12, color:TS, display:"block", marginBottom:5 }}>Recipient source</label>
+                        <select style={iS}><option>PAS extract — all renewing policies</option><option>Manual upload (CSV)</option><option>Single recipient</option></select>
+                      </div>
+                      <div style={{ background:PG, borderRadius:8, padding:14, fontSize:13, marginBottom:12 }}>
+                        <div style={{ fontWeight:600, marginBottom:4 }}>Preview count</div>
+                        <div style={{ fontSize:24, fontWeight:700, color:AC }}>4,200</div>
+                        <div style={{ fontSize:12, color:TM }}>recipients matched</div>
+                      </div>
+                      <button onClick={()=>setComposeStep(5)} style={{ ...bP, width:"100%" }}>Confirm Recipients</button>
+                    </div>
+                  )}
+
+                  {composeStep===5 && (
                     <div>
                       <div style={{ fontSize:14, fontWeight:600, marginBottom:4 }}>Select distribution channels</div>
                       <div style={{ fontSize:12, color:TM, marginBottom:16 }}>Choose how this letter will be delivered to recipients</div>
@@ -1259,8 +1332,7 @@ const [templatesLoading, setTemplatesLoading] = useState(false);
                           { id:"portal", icon:"🌐", label:"Customer Portal",  desc:"Self-service inbox" },
                           { id:"sms",    icon:"💬", label:"SMS Notification", desc:"Link to online version" },
                           { id:"wa",     icon:"__WA__", label:"WhatsApp",         desc:"WhatsApp Business API" },
-                          { id:"archive",    icon:"🗄️", label:"Archive Only",     desc:"Store without sending" },
-                          { id:"localprint", icon:"🖨️", label:"Local Print",      desc:"Print directly from browser" },
+                          { id:"archive",icon:"🗄️", label:"Archive Only",     desc:"Store without sending" },
                         ].map(ch => {
                           const sel = distChannels.includes(ch.id);
                           return (
@@ -1440,48 +1512,6 @@ const [templatesLoading, setTemplatesLoading] = useState(false);
                           </div>
                         </div>
                       )}
-                      {/* WhatsApp config panel */}
-                      {distChannels.includes("wa") && (
-                        <div style={{ border:`1.5px solid ${AC}`, borderRadius:10, overflow:"hidden", marginBottom:16, background:"#fff" }}>
-                          <div style={{ background:ACL, padding:"12px 16px", borderBottom:`1px solid ${AC}30`, display:"flex", alignItems:"center", gap:10 }}>
-                            <span style={{ fontSize:18 }}>💬</span>
-                            <div style={{ flex:1 }}>
-                              <div style={{ fontSize:13, fontWeight:700, color:AC }}>WhatsApp Configuration</div>
-                              <div style={{ fontSize:11, color:TS }}>Recipient mobile number for WhatsApp delivery</div>
-                            </div>
-                          </div>
-                          <div style={{ padding:"14px 16px" }}>
-                            <label style={{ fontSize:12, fontWeight:600, color:TS, display:"block", marginBottom:6 }}>Mobile number (international format)</label>
-                            <input
-                              type="tel"
-                              placeholder={selectedParty?.phone ? `e.g. ${selectedParty.phone}` : "e.g. +447700900123"}
-                              value={waPhone || (selectedParty?.phone ? selectedParty.phone.replace(/^0/, "+44").replace(/\s/g,"") : "")}
-                              onChange={e=>setWaPhone(e.target.value)}
-                              style={iS}
-                            />
-                            {selectedParty?.phone && (
-                              <div style={{ fontSize:11, color:GR, marginTop:6 }}>✓ Pre-filled from {selectedParty.name} ({selectedParty.role})</div>
-                            )}
-                            {!selectedParty?.phone && (
-                              <div style={{ fontSize:11, color:AM, marginTop:6 }}>⚠️ No phone number on record — please enter manually</div>
-                            )}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Local print config panel */}
-                      {distChannels.includes("localprint") && (
-                        <div style={{ border:`1.5px solid ${AC}`, borderRadius:10, overflow:"hidden", marginBottom:16, background:"#fff" }}>
-                          <div style={{ background:ACL, padding:"12px 16px", display:"flex", alignItems:"center", gap:10 }}>
-                            <span style={{ fontSize:18 }}>🖨️</span>
-                            <div style={{ flex:1 }}>
-                              <div style={{ fontSize:13, fontWeight:700, color:AC }}>Local Print</div>
-                              <div style={{ fontSize:11, color:TS }}>Opens browser print dialog when you confirm dispatch</div>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-
                       <div style={{ background:PG, borderRadius:8, padding:14, marginBottom:16 }}>
                         <div style={{ fontSize:12, fontWeight:600, color:TS, marginBottom:10 }}>Dispatch schedule</div>
                         <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
@@ -1506,7 +1536,7 @@ const [templatesLoading, setTemplatesLoading] = useState(false);
                           <div style={{ fontSize:12, fontWeight:600, color:TS, marginBottom:8 }}>Fallback order</div>
                           <div style={{ fontSize:12, color:TM, marginBottom:8 }}>If primary channel fails, attempt next in order</div>
                           {distChannels.map((ch,i)=>{
-                            const info = [{id:"print",icon:"🖨️",label:"Central Print"},{id:"email",icon:"✉️",label:"Email"},{id:"portal",icon:"🌐",label:"Portal"},{id:"sms",icon:"💬",label:"SMS"},{id:"wa",icon:"__WA__",label:"WhatsApp"},{id:"archive",icon:"🗄️",label:"Archive"},{id:"localprint",icon:"🖨️",label:"Local Print"}].find(c=>c.id===ch);
+                            const info = [{id:"print",icon:"🖨️",label:"Central Print"},{id:"email",icon:"✉️",label:"Email"},{id:"portal",icon:"🌐",label:"Portal"},{id:"sms",icon:"💬",label:"SMS"},{id:"wa",icon:"__WA__",label:"WhatsApp"},{id:"archive",icon:"🗄️",label:"Archive"}].find(c=>c.id===ch);
                             return (
                               <div key={ch} style={{ display:"flex", alignItems:"center", gap:10, padding:"7px 0", borderBottom:i<distChannels.length-1?`1px solid ${BD}`:"none", fontSize:13 }}>
                                 <span style={{ width:20, height:20, borderRadius:"50%", background:AC, color:"#fff", fontSize:10, fontWeight:700, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>{i+1}</span>
@@ -1520,14 +1550,14 @@ const [templatesLoading, setTemplatesLoading] = useState(false);
                       )}
 
                       <button
-                        onClick={()=>{ if(!distChannels.length){notify("Please select at least one channel","error");return;} setComposeStep(5); }}
+                        onClick={()=>{ if(!distChannels.length){notify("Please select at least one channel","error");return;} setComposeStep(6); }}
                         style={{ ...bP, width:"100%", opacity:distChannels.length?1:0.5 }}>
                         Confirm Distribution
                       </button>
                     </div>
                   )}
 
-                  {composeStep===5 && (
+                  {composeStep===6 && (
                     <div>
                       {/* Summary card */}
                       <div style={{ background:GL, borderRadius:8, padding:16, marginBottom:14, borderLeft:`4px solid ${GR}` }}>
@@ -1540,10 +1570,10 @@ const [templatesLoading, setTemplatesLoading] = useState(false);
                           ["Associated",  selectedRecord ? `${selectedRecord.name} · ${selectedRecord.ref}` : "No record associated"],
                           ...(selectedParty ? [["Party", `${selectedParty.name} · ${selectedParty.role}`]] : []),
                           ["Template",  "Policy Renewal Notice v3.2"],
-                          ["Recipients", selectedRecord ? selectedRecord.ref || selectedRecord.name : "From associated record"],
+                          ["Recipients","4,200 · PAS extract"],
                           ["Channels",  distChannels.length ? distChannels.map(c=>c.charAt(0).toUpperCase()+c.slice(1)).join(", ") : "—"],
                           ["Schedule",  distSchedule==="immediate"?"Send immediately":distSchedule==="scheduled"?"Scheduled":"Pending approval"],
-                          ["Prepared by","", (()=>{ const u=realUsers.find((u:any)=>u.email===userEmail); const name=u?.name||userEmail; const role=ROLES.find((r:any)=>r.id===u?.role)?.label||"Doc Administrator"; return `${name} · ${role}`; })()],
+                          ["Prepared by","", userEmail + " · Doc Administrator"],
                         ].map(([k,v],i,arr)=>(
                           <div key={k} style={{ display:"flex", justifyContent:"space-between", padding:"10px 14px", borderBottom:i<arr.length-1?`1px solid ${BD}`:"none", fontSize:13 }}>
                             <span style={{ color:TM, fontWeight:500 }}>{k}</span>
@@ -1564,103 +1594,12 @@ const [templatesLoading, setTemplatesLoading] = useState(false);
 
                       <div style={{ display:"flex", gap:10 }}>
                         <button onClick={async ()=>{ try { await fetch("/api/documents",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({associated_type:searchType,associated_ref:selectedRecord?.ref||null,associated_name:selectedRecord?.name||null,party_name:selectedParty?.name||null,party_role:selectedParty?.role||null,letter_body:aiDraft,compose_mode:composeMode,language:transLang||"en",status:"dispatched"})}); } catch(e) {} if(distChannels.includes("wa")){
-  const waTo = waPhone || (selectedParty?.phone ? selectedParty.phone.replace(/^0/,"+44").replace(/\s/g,"") : "");
-  if(waTo){ fetch("/api/generate-pdf",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({letterBody:aiDraft||TEMPLATE_BODY,documentId:Date.now()})}).then(r=>r.json()).then(pdf=>{ fetch("/api/whatsapp",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({to:waTo,message:"Please find your document from RDT Limited attached.",mediaUrl:pdf.url})}).then(r=>r.json()).then(d=>console.log("WA:",d)).catch(e=>console.error("WA:",e)); }).catch(e=>console.error("PDF:",e)); } else { notify("WhatsApp number missing — message not sent","error"); }
+   fetch("/api/generate-pdf",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({letterBody:aiDraft||TEMPLATE_BODY,documentId:Date.now()})}).then(r=>r.json()).then(pdf=>{ fetch("/api/whatsapp",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({to:"+447825806679",message:"Please find your document from RDT Limited attached.",mediaUrl:pdf.url})}).then(r=>r.json()).then(d=>console.log("WA:",d)).catch(e=>console.error("WA:",e)); }).catch(e=>console.error("PDF:",e));
 }
-if(distChannels.includes("localprint")){
-  const rawPrintBody = aiDraft || TEMPLATE_BODY;
-  const printBody = Object.entries(mergeData).reduce((b,[k,v])=>b.split(k).join(v), rawPrintBody);
-  const custName = mergeData["{{CUSTOMER_NAME}}"] || "";
-  const addr1 = mergeData["{{ADDRESS_LINE1}}"] || "";
-  const postcode = mergeData["{{POSTCODE}}"] || "";
-  const policyRef = mergeData["{{POLICY_NUMBER}}"] || "";
-  const today = new Date().toLocaleDateString("en-GB", {day:"numeric",month:"long",year:"numeric"});
-  const sigName = (()=>{ const u=realUsers.find((u)=>u.email===userEmail); return u?.name||userEmail; })();
-  const sigRole = (()=>{ const u=realUsers.find((u)=>u.email===userEmail); return ROLES.find((r)=>r.id===u?.role)?.label||"Doc Administrator"; })();
-  const win = window.open("","_blank");
-  if(win){ win.document.write(`<!DOCTYPE html>
-<html>
-<head>
-  <title>RDT Letter${policyRef?" — "+policyRef:""}</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: Georgia, serif; font-size: 13px; color: #1a1a1a; background: #fff; }
-    .page { max-width: 740px; margin: 0 auto; }
-    .letterhead { padding: 20px 28px 14px; border-bottom: 3px solid #eb5f0a; display: flex; justify-content: space-between; align-items: center; }
-    .letterhead img { height: 66px; width: 198px; object-fit: contain; }
-    .letterhead-address { text-align: right; font-size: 11px; color: #555; line-height: 1.7; font-family: Arial, sans-serif; }
-    .letterhead-address strong { color: #1a1a1a; font-size: 12px; }
-    .body { padding: 20px 28px 16px; }
-    .meta { display: flex; justify-content: space-between; margin-bottom: 16px; font-size: 12px; color: #555; font-family: Arial, sans-serif; }
-    .recipient { margin-bottom: 16px; font-size: 12px; line-height: 1.7; font-family: Arial, sans-serif; }
-    .recipient strong { color: #1a1a1a; }
-    .letter-content { line-height: 1.8; white-space: pre-wrap; color: #333; font-size: 13px; }
-    .sign-off { margin: 20px 0 16px; line-height: 1.8; }
-    .sig-block { border-top: 1px solid #e5e7eb; padding-top: 14px; display: flex; justify-content: space-between; align-items: flex-end; }
-    .sig-name { font-size: 16px; font-style: italic; color: #333; margin-bottom: 4px; }
-    .sig-label { font-size: 12px; font-weight: 600; color: #111827; font-family: Arial, sans-serif; }
-    .sig-role { font-size: 11px; color: #6b7280; font-family: Arial, sans-serif; }
-    .sig-contact { text-align: right; font-size: 10px; color: #9ca3af; font-family: Arial, sans-serif; line-height: 1.6; }
-    .footer { background: #1a1f2e; padding: 10px 28px; display: flex; justify-content: space-between; align-items: center; margin-top: 0; }
-    .footer-left { font-size: 10px; color: rgba(255,255,255,0.6); font-family: Arial, sans-serif; }
-    .footer-right { font-size: 10px; color: rgba(255,255,255,0.5); font-family: Arial, sans-serif; }
-    .footer-right span { color: rgba(255,255,255,0.8); font-weight: 600; }
-    @media print {
-      body { margin: 0; }
-      .page { max-width: 100%; }
-      @page { margin: 0; }
-    }
-  </style>
-</head>
-<body>
-<div class="page">
-  <div class="letterhead">
-    <img src="${RDT_LOGO}" alt="RDT" />
-    <div class="letterhead-address">
-      <strong>RDT Limited</strong><br/>
-      Kings Court, 17 School Road<br/>
-      Birmingham, B28 8JG<br/>
-      info@rdtltd.com
-    </div>
-  </div>
-  <div class="body">
-    <div class="meta">
-      <span>${policyRef ? "Ref: " + policyRef : ""}</span>
-      <span>Date: ${today}</span>
-    </div>
-    <div class="recipient">
-      ${custName ? "<strong>" + custName + "</strong><br/>" : ""}
-      ${addr1 ? addr1 + "<br/>" : ""}
-      ${postcode ? postcode : ""}
-    </div>
-    <div class="letter-content">${printBody.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}</div>
-    <div class="sign-off">Yours sincerely,</div>
-    <div class="sig-block">
-      <div>
-        <div class="sig-name">${sigName}</div>
-        <div class="sig-label">${sigName}</div>
-        <div class="sig-role">${sigRole}</div>
-        <div class="sig-role">RDT Limited</div>
-      </div>
-      <div class="sig-contact">
-        ${userEmail}<br/>
-        0121 000 0000
-      </div>
-    </div>
-  </div>
-  <div class="footer">
-    <div class="footer-left">RDT Limited &middot; Registered in England &amp; Wales No. 12345678</div>
-    <div class="footer-right">Prepared by: <span>${sigName}</span></div>
-  </div>
-</div>
-</body>
-</html>`);
-  win.document.close(); win.focus(); win.print(); }
-}
-notify("Job queued for dispatch"); setComposeStep(1);setDistChannels([]);setDistSchedule("immediate");setAiDraft("");setAiPrompt("");setAiPurpose("");setAiRecipient("");setComposeMode("template");setSelectedRecord(null);setSearchQuery("");setSelectedParty(null);setClaimPartyStep(false);setTransLang("");setTransOpen(false);setCSearch("");setCCat("All");setWaPhone("");}} style={{ ...bP, flex:1 }}>
+notify("Job queued for dispatch"); setComposeStep(1);setDistChannels([]);setDistSchedule("immediate");setAiDraft("");setAiPrompt("");setAiPurpose("");setAiRecipient("");setComposeMode("template");setSelectedRecord(null);setSearchQuery("");setSelectedParty(null);setClaimPartyStep(false);setTransLang("");setTransOpen(false);setCSearch("");setCCat("All");}} style={{ ...bP, flex:1 }}>
                           Confirm &amp; Dispatch
                         </button>
-                        <button onClick={()=>setComposeStep(4)} style={bS}>Back</button>
+                        <button onClick={()=>setComposeStep(5)} style={bS}>Back</button>
                       </div>
                     </div>
                   )}
