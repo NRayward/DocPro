@@ -1,21 +1,26 @@
-import Anthropic from '@anthropic-ai/sdk'
 import { NextResponse } from 'next/server'
 
-const client = new Anthropic()
-
 export async function POST(req: Request) {
-  const { prompt, tone, recipient } = await req.json()
+  try {
+    const { prompt, tone, recipient } = await req.json()
 
-  if (!prompt || !recipient) {
-    return NextResponse.json({ error: 'prompt and recipient are required' }, { status: 400 })
-  }
+    if (!prompt || !recipient) {
+      return NextResponse.json({ error: 'prompt and recipient are required' }, { status: 400 })
+    }
 
-  const message = await client.messages.create({
-    model: 'claude-sonnet-4-6',
-    max_tokens: 1024,
-    messages: [{
-      role: 'user',
-      content: `You are a professional insurance correspondence writer for RDT Limited, an insurance technology company based in Birmingham, UK.
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': process.env.ANTHROPIC_API_KEY!,
+        'anthropic-version': '2023-06-01',
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 1024,
+        messages: [{
+          role: 'user',
+          content: `You are a professional insurance correspondence writer for RDT Limited, an insurance technology company based in Birmingham, UK.
 
 Write the BODY CONTENT ONLY of a letter based on the following instructions:
 
@@ -30,9 +35,23 @@ Rules:
 - End with "Yours sincerely,"
 - Do NOT include letterhead, address block, signature block or date — those are added automatically
 - Plain text only, no markdown, no bullet points`
-    }]
-  })
+        }]
+      })
+    })
 
-  const text = message.content[0].type === 'text' ? message.content[0].text : ''
-  return NextResponse.json({ text })
+    if (!response.ok) {
+      const err = await response.text()
+      console.error('Anthropic error:', response.status, err)
+      return NextResponse.json({ error: `API error ${response.status}` }, { status: 500 })
+    }
+
+    const data = await response.json()
+    const text = data.content?.find((b: any) => b.type === 'text')?.text || ''
+    return NextResponse.json({ text })
+
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Unknown error'
+    console.error('Generate error:', message)
+    return NextResponse.json({ error: message }, { status: 500 })
+  }
 }
