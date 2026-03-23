@@ -239,6 +239,7 @@ const [templatesLoading, setTemplatesLoading] = useState(false);
   const [cSearch, setCSearch] = useState("");
   const [cCat, setCCat] = useState("All");
   const [channels, setChannels] = useState([]);
+  const [waPhone, setWaPhone] = useState("");
   const [composeStep, setComposeStep] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
  const [searchType, setSearchType] = useState("policy");
