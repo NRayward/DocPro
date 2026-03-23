@@ -1655,59 +1655,19 @@ ${letterBody}`
     const senderRole = ROLES.find((r:any)=>r.id===realUsers.find((u:any)=>u.email===userEmail)?.role)?.label || "Doc Administrator";
     const bodyHtml = (aiDraft||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\n/g,"<br>");
     const addrLines = recipientAddr ? recipientAddr.split(/,\s*/).map((l:string)=>l.trim()).filter(Boolean).join("<br>") : "";
+    const refLine = (selectedRecord?.ref ? " &nbsp;&nbsp; Ref: " + selectedRecord.ref : "") + (recipientRole !== "Policyholder" ? " &nbsp;&nbsp; Re: " + recipientRole : "");
+    const css = "*{box-sizing:border-box;margin:0;padding:0;}body{font-family:Arial,sans-serif;background:#fff;color:#111;}.page{max-width:740px;margin:0 auto;padding:40px 50px 50px;}.letterhead{display:flex;justify-content:space-between;align-items:center;padding-bottom:14px;border-bottom:3px solid #eb5f0a;margin-bottom:28px;}.letterhead-right{text-align:right;font-size:11px;line-height:1.8;color:#555;}.addr-block{font-size:13px;line-height:1.8;margin-bottom:28px;}.ref-line{font-size:12px;color:#555;margin-bottom:20px;}.body{font-size:13px;line-height:1.9;margin-bottom:36px;}.sig{font-size:13px;line-height:1.9;}.footer{margin-top:40px;padding-top:14px;border-top:1px solid #e5e7eb;font-size:10px;color:#888;display:flex;justify-content:space-between;}@media print{@page{margin:20mm;}body{font-size:12pt;}}";
+    const html = "<!DOCTYPE html><html><head><title>Letter</title><style>" + css + "</style></head><body>"
+      + "<div class=\"page\">"
+      + "<div class=\"letterhead\"><img src=\"" + RDT_LOGO + "\" alt=\"RDT\" style=\"height:66px;width:198px;object-fit:contain;display:block;\"><div class=\"letterhead-right\">Kings Court, 17 School Road<br>Birmingham, B28 8JG<br>Tel: 0121 000 0000<br>info@rdtltd.com<br>www.rdtltd.com</div></div>"
+      + "<div class=\"addr-block\"><strong>" + recipientName + "</strong><br>" + addrLines + "</div>"
+      + "<div class=\"ref-line\">Date: " + today + refLine + "</div>"
+      + "<div class=\"body\">" + bodyHtml + "</div>"
+      + "<div class=\"sig\"><p>Yours sincerely,</p><br><br><p><strong>" + senderName + "</strong></p><p>" + senderRole + "</p><p>" + userEmail + "</p><p>RDT Limited</p></div>"
+      + "<div class=\"footer\"><span>RDT Limited &middot; Registered in England &amp; Wales No. 12345678 &middot; Authorised and regulated by the FCA</span><span>Prepared by: " + senderName + " &middot; " + today + "</span></div>"
+      + "</div><script>window.onload=function(){window.print();}<\/script></body></html>";
     const printWin = window.open("","_blank","width=850,height=1000");
-    if(printWin){
-      printWin.document.write(\`<!DOCTYPE html><html><head><title>Letter — \${selectedRecord?.ref||""}</title><style>
-        *{box-sizing:border-box;margin:0;padding:0;}
-        body{font-family:'Arial',sans-serif;background:#fff;color:#111;}
-        .page{max-width:740px;margin:0 auto;padding:40px 50px 50px;}
-        .letterhead{display:flex;justify-content:space-between;align-items:center;padding-bottom:14px;border-bottom:3px solid #eb5f0a;margin-bottom:28px;}
-        .letterhead-right{text-align:right;font-size:11px;line-height:1.8;color:#555;}
-        .addr-block{font-size:13px;line-height:1.8;margin-bottom:28px;}
-        .ref-line{font-size:12px;color:#555;margin-bottom:20px;}
-        .body{font-size:13px;line-height:1.9;margin-bottom:36px;}
-        .sig{font-size:13px;line-height:1.9;}
-        .footer{margin-top:40px;padding-top:14px;border-top:1px solid #e5e7eb;font-size:10px;color:#888;display:flex;justify-content:space-between;}
-        @media print{@page{margin:20mm;} body{font-size:12pt;}}
-      </style></head><body>
-      <div class="page">
-        <div class="letterhead">
-          <img src="\${RDT_LOGO}" alt="RDT" style="height:66px;width:198px;object-fit:contain;display:block;">
-          <div class="letterhead-right">
-            Kings Court, 17 School Road<br>
-            Birmingham, B28 8JG<br>
-            Tel: 0121 000 0000<br>
-            info@rdtltd.com<br>
-            www.rdtltd.com
-          </div>
-        </div>
-        <div class="addr-block">
-          <strong>\${recipientName}</strong><br>
-          \${addrLines}
-        </div>
-        <div class="ref-line">
-          Date: \${today}
-          \${selectedRecord?.ref ? " &nbsp;&nbsp; Ref: "+selectedRecord.ref : ""}
-          \${recipientRole !== "Policyholder" ? " &nbsp;&nbsp; Re: "+recipientRole : ""}
-        </div>
-        <div class="body">\${bodyHtml}</div>
-        <div class="sig">
-          <p>Yours sincerely,</p>
-          <br><br>
-          <p><strong>\${senderName}</strong></p>
-          <p>\${senderRole}</p>
-          <p>\${userEmail}</p>
-          <p>RDT Limited</p>
-        </div>
-        <div class="footer">
-          <span>RDT Limited &middot; Registered in England &amp; Wales No. 12345678 &middot; Authorised and regulated by the FCA</span>
-          <span>Prepared by: \${senderName} &middot; \${today}</span>
-        </div>
-      </div>
-      <script>window.onload=function(){window.print();}<\/script>
-      </body></html>\`);
-      printWin.document.close();
-    }
+    if(printWin){ printWin.document.write(html); printWin.document.close(); }
   }
 
   notify("Job queued for dispatch"); setComposeStep(1);setDistChannels([]);setDistSchedule("immediate");setAiDraft("");setAiPrompt("");setAiPurpose("");setAiRecipient("");setComposeMode("template");setSelectedRecord(null);setSearchQuery("");setSelectedParty(null);setClaimPartyStep(false);setTransLang("");setTransOpen(false);setCSearch("");setCCat("All");setWaPhone("");
