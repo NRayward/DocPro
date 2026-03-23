@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { createClient } from "@supabase/supabase-js";
 
+const SIDEBAR = "#1e2433";
 const AC = "#4f6ef7"; const ACL = "#eef1fe"; const PG = "#f0f2f5"; const CB = "#ffffff";
 const BD = "#e5e8ef"; const TP = "#1a1f2e"; const TS = "#6b7280"; const TM = "#9ca3af";
 const GR = "#22c55e"; const GL = "#dcfce7"; const AM = "#f59e0b"; const AL = "#fef3c7";
@@ -38,7 +39,7 @@ const PMATRIX = [
 ];
 
 const INIT_USERS = [
-  { id:1, name:"Sarah Kent",     email:"s.kent@rdtltd.com",     role:"doc_admin",    dept:"Operations", status:"Active",   lastLogin:"Today 09:41", mfa:true  },
+  { id:1, name:{realUsers.find((u:any)=>u.email===userEmail)?.name || userEmail},     email:{userEmail},     role:"doc_admin",    dept:"Operations", status:"Active",   lastLogin:"Today 09:41", mfa:true  },
   { id:2, name:"James Thomas",   email:"j.thomas@rdtltd.com",   role:"doc_editor",   dept:"Operations", status:"Active",   lastLogin:"Today 08:55", mfa:true  },
   { id:3, name:"Emma Reynolds",  email:"e.reynolds@rdtltd.com", role:"approver",     dept:"Compliance", status:"Active",   lastLogin:"Yesterday",   mfa:true  },
   { id:4, name:"David Mitchell", email:"d.mitchell@rdtltd.com", role:"workflow_mgr", dept:"IT",         status:"Active",   lastLogin:"Today 07:30", mfa:false },
@@ -59,6 +60,7 @@ const TEMPLATES = [
 
 const CHANNELS = [
   { id:"print", label:"Central Print",   icon:"🖨️" },
+  { id:"localprint", label:"Local Print", icon:"🖨️" },
   { id:"email", label:"Email",           icon:"✉️" },
   { id:"sms",   label:"SMS",             icon:"💬" },
   { id:"wa",    label:"WhatsApp",        icon:"__WA__" },
@@ -345,7 +347,7 @@ const [templatesLoading, setTemplatesLoading] = useState(false);
       )}
 
       {/* Sidebar */}
-      <aside style={{ width:sideOpen?224:56, minHeight:"100vh", background:"#fff", borderRight:`1px solid ${BD}`, display:"flex", flexDirection:"column", transition:"width 0.2s", flexShrink:0, overflow:"hidden" }}>
+      <aside style={{ width:sideOpen?224:56, minHeight:"100vh", background:SIDEBAR, borderRight:`1px solid rgba(255,255,255,0.08)`, display:"flex", flexDirection:"column", transition:"width 0.2s", flexShrink:0, overflow:"hidden" }}>
         <div style={{ height:82, display:"flex", alignItems:"center", justifyContent:sideOpen?"flex-start":"center", padding:sideOpen?"0 16px":"0 8px", borderBottom:`1px solid ${BD}`, flexShrink:0, background:"#fff", gap:8 }}>
           <img src={RDT_LOGO} alt="RDT" style={{ height:sideOpen?70:57, width:sideOpen?210:66, objectFit:"contain", display:"block", flexShrink:0 }} />
         </div>
@@ -383,7 +385,7 @@ const [templatesLoading, setTemplatesLoading] = useState(false);
           </div>
           {topItems.map(item => {
             const active = nav===item.id;
-            return <button key={item.id} onClick={()=>setNav(item.id)} style={{ width:"100%", display:"flex", alignItems:"center", gap:8, padding:"8px 10px", borderRadius:7, border:"none", cursor:"pointer", background:active?`${AC}12`:"transparent", color:active?AC:TS, fontSize:13, fontFamily:F, fontWeight:active?600:400, marginBottom:1, textAlign:"left" }}>
+            return <button key={item.id} onClick={()=>setNav(item.id)} style={{ width:"100%", display:"flex", alignItems:"center", gap:8, padding:"8px 10px", borderRadius:7, border:"none", cursor:"pointer", background:active?AC:"transparent", color:active?"#fff":"rgba(255,255,255,0.5)", fontSize:13, fontFamily:F, fontWeight:active?600:400, marginBottom:1, textAlign:"left" }}>
               <span style={{ width:18, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>{ICONS[item.id]}</span>
               {sideOpen && <span style={{ flex:1 }}>{item.label}</span>}
               {sideOpen && item.badge && <span style={{ background:active?`${AC}20`:"rgba(0,0,0,0.06)", color:active?AC:TS, fontSize:10, padding:"1px 6px", borderRadius:20, fontWeight:600 }}>{item.badge}</span>}
@@ -394,7 +396,7 @@ const [templatesLoading, setTemplatesLoading] = useState(false);
               {sideOpen && <div style={{ fontSize:10, color:"#b0b7c3", fontWeight:600, letterSpacing:"0.08em", padding:"4px 10px 2px" }}>{sec}</div>}
               {navBySec(sec).map(item => {
                 const active = nav===item.id;
-                return <button key={item.id} onClick={()=>setNav(item.id)} style={{ width:"100%", display:"flex", alignItems:"center", gap:8, padding:"8px 10px", borderRadius:7, border:"none", cursor:"pointer", background:active?`${AC}12`:"transparent", color:active?AC:TS, fontSize:13, fontFamily:F, fontWeight:active?600:400, marginBottom:1, textAlign:"left" }}>
+                return <button key={item.id} onClick={()=>setNav(item.id)} style={{ width:"100%", display:"flex", alignItems:"center", gap:8, padding:"8px 10px", borderRadius:7, border:"none", cursor:"pointer", background:active?AC:"transparent", color:active?"#fff":"rgba(255,255,255,0.5)", fontSize:13, fontFamily:F, fontWeight:active?600:400, marginBottom:1, textAlign:"left" }}>
                   <span style={{ width:18, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>{ICONS[item.id]}</span>
                   {sideOpen && <span style={{ flex:1 }}>{item.label}</span>}
                   {sideOpen && item.badge && <span style={{ background:active?`${AC}20`:"rgba(0,0,0,0.06)", color:active?AC:TS, fontSize:10, padding:"1px 6px", borderRadius:20, fontWeight:600 }}>{item.badge}</span>}
@@ -680,13 +682,13 @@ const [templatesLoading, setTemplatesLoading] = useState(false);
             <div>
               <PH title="Document Composer" sub="Create, customise and prepare documents for dispatch" />
               <div style={{ display:"flex", gap:6, marginBottom:20 }}>
-                {["1 Search","2 Template","3 Content","4 Recipients","5 Distribution","6 Review"].map((s,i) => (
+                {["1 Search","2 Template","3 Content","4 Distribution","5 Review"].map((s,i) => (
                   <div key={i} style={{ flex:1, padding:"10px 14px", borderRadius:8, background:composeStep===i+1?AC:composeStep>i+1?GL:PG, color:composeStep===i+1?"#fff":composeStep>i+1?GR:TM, fontSize:12, fontWeight:600, textAlign:"center", cursor:"pointer" }} onClick={()=>setComposeStep(i+1)}>{s}</div>
                 ))}
               </div>
               <div style={{ display:"grid", gridTemplateColumns:"1fr 280px", gap:16 }}>
                 <Cd style={{ padding:20 }}>
-                  <SL>Step {composeStep} of 6</SL>
+                  <SL>Step {composeStep} of 5</SL>
                   {/* ── STEP 1: Search ── */}
                   {composeStep===1 && (
                     <div>
@@ -1315,11 +1317,11 @@ ${letterBody}`
                         <div style={{ fontSize:24, fontWeight:700, color:AC }}>4,200</div>
                         <div style={{ fontSize:12, color:TM }}>recipients matched</div>
                       </div>
-                      <button onClick={()=>setComposeStep(5)} style={{ ...bP, width:"100%" }}>Confirm Recipients</button>
+                      <button onClick={()=>setComposeStep(4)} style={{ ...bP, width:"100%" }}>Continue to Template Selection &#8594;</button>
                     </div>
                   )}
 
-                  {composeStep===5 && (
+                  {composeStep===4 && (
                     <div>
                       <div style={{ fontSize:14, fontWeight:600, marginBottom:4 }}>Select distribution channels</div>
                       <div style={{ fontSize:12, color:TM, marginBottom:16 }}>Choose how this letter will be delivered to recipients</div>
@@ -1550,14 +1552,14 @@ ${letterBody}`
                       )}
 
                       <button
-                        onClick={()=>{ if(!distChannels.length){notify("Please select at least one channel","error");return;} setComposeStep(6); }}
+                        onClick={()=>{ if(!distChannels.length){notify("Please select at least one channel","error");return;} setComposeStep(5); }}
                         style={{ ...bP, width:"100%", opacity:distChannels.length?1:0.5 }}>
                         Confirm Distribution
                       </button>
                     </div>
                   )}
 
-                  {composeStep===6 && (
+                  {composeStep===5 && (
                     <div>
                       {/* Summary card */}
                       <div style={{ background:GL, borderRadius:8, padding:16, marginBottom:14, borderLeft:`4px solid ${GR}` }}>
@@ -1594,12 +1596,12 @@ ${letterBody}`
 
                       <div style={{ display:"flex", gap:10 }}>
                         <button onClick={async ()=>{ try { await fetch("/api/documents",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({associated_type:searchType,associated_ref:selectedRecord?.ref||null,associated_name:selectedRecord?.name||null,party_name:selectedParty?.name||null,party_role:selectedParty?.role||null,letter_body:aiDraft,compose_mode:composeMode,language:transLang||"en",status:"dispatched"})}); } catch(e) {} if(distChannels.includes("wa")){
-   fetch("/api/generate-pdf",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({letterBody:aiDraft||TEMPLATE_BODY,documentId:Date.now()})}).then(r=>r.json()).then(pdf=>{ fetch("/api/whatsapp",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({to:"+447825806679",message:"Please find your document from RDT Limited attached.",mediaUrl:pdf.url})}).then(r=>r.json()).then(d=>console.log("WA:",d)).catch(e=>console.error("WA:",e)); }).catch(e=>console.error("PDF:",e));
+   fetch("/api/generate-pdf",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({letterBody:aiDraft||TEMPLATE_BODY,documentId:Date.now()})}).then(r=>r.json()).then(pdf=>{ fetch("/api/whatsapp",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({to:waPhone || "+447825806679",message:"Please find your document from RDT Limited attached.",mediaUrl:pdf.url})}).then(r=>r.json()).then(d=>console.log("WA:",d)).catch(e=>console.error("WA:",e)); }).catch(e=>console.error("PDF:",e));
 }
 notify("Job queued for dispatch"); setComposeStep(1);setDistChannels([]);setDistSchedule("immediate");setAiDraft("");setAiPrompt("");setAiPurpose("");setAiRecipient("");setComposeMode("template");setSelectedRecord(null);setSearchQuery("");setSelectedParty(null);setClaimPartyStep(false);setTransLang("");setTransOpen(false);setCSearch("");setCCat("All");}} style={{ ...bP, flex:1 }}>
                           Confirm &amp; Dispatch
                         </button>
-                        <button onClick={()=>setComposeStep(5)} style={bS}>Back</button>
+                        <button onClick={()=>setComposeStep(4)} style={bS}>Back</button>
                       </div>
                     </div>
                   )}
