@@ -1331,6 +1331,7 @@ ${letterBody}`
                       <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginBottom:20 }}>
                         {[
                           { id:"print",  icon:"🖨️", label:"Central Print",    desc:"Mailing house dispatch" },
+                          { id:"localprint", icon:"🖨️", label:"Local Print",    desc:"Print from this browser" },
                           { id:"email",  icon:"✉️", label:"Email",            desc:"PDF attachment or inline" },
                           { id:"portal", icon:"🌐", label:"Customer Portal",  desc:"Self-service inbox" },
                           { id:"sms",    icon:"💬", label:"SMS Notification", desc:"Link to online version" },
@@ -1563,7 +1564,7 @@ ${letterBody}`
                           <div style={{ fontSize:12, fontWeight:600, color:TS, marginBottom:8 }}>Fallback order</div>
                           <div style={{ fontSize:12, color:TM, marginBottom:8 }}>If primary channel fails, attempt next in order</div>
                           {distChannels.map((ch,i)=>{
-                            const info = [{id:"print",icon:"🖨️",label:"Central Print"},{id:"email",icon:"✉️",label:"Email"},{id:"portal",icon:"🌐",label:"Portal"},{id:"sms",icon:"💬",label:"SMS"},{id:"wa",icon:"__WA__",label:"WhatsApp"},{id:"archive",icon:"🗄️",label:"Archive"}].find(c=>c.id===ch);
+                            const info = [{id:"print",icon:"🖨️",label:"Central Print"},{id:"localprint",icon:"🖨️",label:"Local Print"},{id:"email",icon:"✉️",label:"Email"},{id:"portal",icon:"🌐",label:"Portal"},{id:"sms",icon:"💬",label:"SMS"},{id:"wa",icon:"__WA__",label:"WhatsApp"},{id:"archive",icon:"🗄️",label:"Archive"}].find(c=>c.id===ch);
                             return (
                               <div key={ch} style={{ display:"flex", alignItems:"center", gap:10, padding:"7px 0", borderBottom:i<distChannels.length-1?`1px solid ${BD}`:"none", fontSize:13 }}>
                                 <span style={{ width:20, height:20, borderRadius:"50%", background:AC, color:"#fff", fontSize:10, fontWeight:700, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>{i+1}</span>
@@ -1644,45 +1645,68 @@ ${letterBody}`
     fetch("/api/generate-pdf",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({letterBody:aiDraft||TEMPLATE_BODY,documentId:Date.now()})}).then(r=>r.json()).then(pdf=>{ fetch("/api/whatsapp",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({to:waPhone || "+447825806679",message:"Please find your document from RDT Limited attached.",mediaUrl:pdf.url})}).then(r=>r.json()).then(d=>console.log("WA:",d)).catch(e=>console.error("WA:",e)); }).catch(e=>console.error("PDF:",e));
   }
 
-  // 4. Local Print — open branded print window
+  // 4. Local Print — open branded print window with full letterhead
   if(distChannels.includes("localprint")){
     const recipientName = selectedParty?.name || selectedRecord?.name || "";
     const recipientAddr = selectedParty?.address || "";
+    const recipientRole = selectedParty?.role || "Policyholder";
     const today = new Date().toLocaleDateString("en-GB",{day:"numeric",month:"long",year:"numeric"});
     const senderName = realUsers.find((u:any)=>u.email===userEmail)?.name || userEmail;
-    const printWin = window.open("","_blank","width=820,height=900");
+    const senderRole = ROLES.find((r:any)=>r.id===realUsers.find((u:any)=>u.email===userEmail)?.role)?.label || "Doc Administrator";
+    const bodyHtml = (aiDraft||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/
+/g,"<br>");
+    const addrLines = recipientAddr ? recipientAddr.split(/,\s*/).map((l:string)=>l.trim()).filter(Boolean).join("<br>") : "";
+    const printWin = window.open("","_blank","width=850,height=1000");
     if(printWin){
-      printWin.document.write(`<!DOCTYPE html><html><head><title>Letter</title><style>
-        body{font-family:Georgia,serif;margin:0;padding:0;color:#111;}
-        .page{max-width:720px;margin:0 auto;padding:40px 50px;}
-        .header{display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:16px;border-bottom:3px solid #eb5f0a;margin-bottom:24px;}
-        .logo{font-size:28px;font-weight:900;letter-spacing:-1px;}<span style="color:#eb5f0a">RDT</span>
-        .addr-block{font-size:13px;line-height:1.7;margin-bottom:24px;}
-        .body{font-size:14px;line-height:1.8;white-space:pre-wrap;margin-bottom:32px;}
-        .sig{font-size:14px;line-height:1.8;}
-        .footer{margin-top:40px;padding-top:12px;border-top:1px solid #ddd;font-size:11px;color:#666;text-align:center;}
-        @media print{body{margin:0;}button{display:none;}}
+      printWin.document.write(\`<!DOCTYPE html><html><head><title>Letter — \${selectedRecord?.ref||""}</title><style>
+        *{box-sizing:border-box;margin:0;padding:0;}
+        body{font-family:'Arial',sans-serif;background:#fff;color:#111;}
+        .page{max-width:740px;margin:0 auto;padding:40px 50px 50px;}
+        .letterhead{display:flex;justify-content:space-between;align-items:center;padding-bottom:14px;border-bottom:3px solid #eb5f0a;margin-bottom:28px;}
+        .letterhead-right{text-align:right;font-size:11px;line-height:1.8;color:#555;}
+        .addr-block{font-size:13px;line-height:1.8;margin-bottom:28px;}
+        .ref-line{font-size:12px;color:#555;margin-bottom:20px;}
+        .body{font-size:13px;line-height:1.9;margin-bottom:36px;}
+        .sig{font-size:13px;line-height:1.9;}
+        .footer{margin-top:40px;padding-top:14px;border-top:1px solid #e5e7eb;font-size:10px;color:#888;display:flex;justify-content:space-between;}
+        @media print{@page{margin:20mm;} body{font-size:12pt;}}
       </style></head><body>
       <div class="page">
-        <div class="header">
-          <div style="font-size:28px;font-weight:900;letter-spacing:-1px;"><span style="color:#eb5f0a">RDT</span> Limited</div>
-          <div style="text-align:right;font-size:12px;line-height:1.7;color:#555;">
-            Kings Court, 17 School Road<br>Birmingham, B28 8JG<br>${today}
+        <div class="letterhead">
+          <img src="\${RDT_LOGO}" alt="RDT" style="height:66px;width:198px;object-fit:contain;display:block;">
+          <div class="letterhead-right">
+            Kings Court, 17 School Road<br>
+            Birmingham, B28 8JG<br>
+            Tel: 0121 000 0000<br>
+            info@rdtltd.com<br>
+            www.rdtltd.com
           </div>
         </div>
         <div class="addr-block">
-          <strong>${recipientName}</strong><br>${recipientAddr.replace(/,\s*/g,"<br>")}
+          <strong>\${recipientName}</strong><br>
+          \${addrLines}
         </div>
-        <div class="body">${(aiDraft||"").replace(/</g,"&lt;").replace(/>/g,"&gt;")}</div>
+        <div class="ref-line">
+          Date: \${today}
+          \${selectedRecord?.ref ? " &nbsp;&nbsp; Ref: "+selectedRecord.ref : ""}
+          \${recipientRole !== "Policyholder" ? " &nbsp;&nbsp; Re: "+recipientRole : ""}
+        </div>
+        <div class="body">\${bodyHtml}</div>
         <div class="sig">
           <p>Yours sincerely,</p>
-          <br>
-          <p><strong>${senderName}</strong><br>${userEmail}<br>RDT Limited</p>
+          <br><br>
+          <p><strong>\${senderName}</strong></p>
+          <p>\${senderRole}</p>
+          <p>\${userEmail}</p>
+          <p>RDT Limited</p>
         </div>
-        <div class="footer">RDT Limited · Registered in England &amp; Wales · ${today}</div>
+        <div class="footer">
+          <span>RDT Limited &middot; Registered in England &amp; Wales No. 12345678 &middot; Authorised and regulated by the FCA</span>
+          <span>Prepared by: \${senderName} &middot; \${today}</span>
+        </div>
       </div>
-      <script>window.onload=()=>{window.print();}<\/script>
-      </body></html>`);
+      <script>window.onload=function(){window.print();}<\/script>
+      </body></html>\`);
       printWin.document.close();
     }
   }
