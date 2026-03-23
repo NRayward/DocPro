@@ -1533,6 +1533,30 @@ ${letterBody}`
                         )}
                       </div>
 
+                      {/* Local Print config */}
+                      {distChannels.includes("localprint") && (
+                        <div style={{ border:`1.5px solid ${AC}`, borderRadius:10, overflow:"hidden", marginBottom:16, background:"#fff" }}>
+                          <div style={{ background:ACL, padding:"12px 16px", borderBottom:`1px solid ${AC}30`, display:"flex", alignItems:"center", gap:10 }}>
+                            <span style={{ fontSize:18 }}>🖨️</span>
+                            <div style={{ flex:1 }}>
+                              <div style={{ fontSize:13, fontWeight:700, color:AC }}>Local Print</div>
+                              <div style={{ fontSize:11, color:TS }}>Print directly from your browser — full branded letterhead included</div>
+                            </div>
+                          </div>
+                          <div style={{ padding:16, fontSize:13, color:TS }}>
+                            <div style={{ display:"flex", alignItems:"flex-start", gap:10, background:PG, borderRadius:8, padding:12 }}>
+                              <span style={{ fontSize:16, flexShrink:0 }}>ℹ️</span>
+                              <div>
+                                <div style={{ fontWeight:600, marginBottom:4 }}>How Local Print works</div>
+                                <div style={{ fontSize:12, color:TM, lineHeight:1.6 }}>
+                                  On dispatch, a print-ready version of your letter will open in a new browser window with the full RDT letterhead, recipient address block, and signature. Use your browser's print dialog (Ctrl+P / Cmd+P) to send to your printer.
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
                       {/* Priority & fallback */}
                       {distChannels.length > 1 && (
                         <div style={{ background:"#fff", border:`1px solid ${BD}`, borderRadius:8, padding:14, marginBottom:16 }}>
@@ -1596,10 +1620,75 @@ ${letterBody}`
                       </div>
 
                       <div style={{ display:"flex", gap:10 }}>
-                        <button onClick={async ()=>{ try { await fetch("/api/documents",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({associated_type:searchType,associated_ref:selectedRecord?.ref||null,associated_name:selectedRecord?.name||null,party_name:selectedParty?.name||null,party_role:selectedParty?.role||null,letter_body:aiDraft,compose_mode:composeMode,language:transLang||"en",status:"dispatched"})}); } catch(e) {} if(distChannels.includes("wa")){
-   fetch("/api/generate-pdf",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({letterBody:aiDraft||TEMPLATE_BODY,documentId:Date.now()})}).then(r=>r.json()).then(pdf=>{ fetch("/api/whatsapp",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({to:waPhone || "+447825806679",message:"Please find your document from RDT Limited attached.",mediaUrl:pdf.url})}).then(r=>r.json()).then(d=>console.log("WA:",d)).catch(e=>console.error("WA:",e)); }).catch(e=>console.error("PDF:",e));
-}
-notify("Job queued for dispatch"); setComposeStep(1);setDistChannels([]);setDistSchedule("immediate");setAiDraft("");setAiPrompt("");setAiPurpose("");setAiRecipient("");setComposeMode("template");setSelectedRecord(null);setSearchQuery("");setSelectedParty(null);setClaimPartyStep(false);setTransLang("");setTransOpen(false);setCSearch("");setCCat("All");}} style={{ ...bP, flex:1 }}>
+                        <button onClick={async ()=>{
+  // 1. Save to documents log
+  try { await fetch("/api/documents",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({associated_type:searchType,associated_ref:selectedRecord?.ref||null,associated_name:selectedRecord?.name||null,party_name:selectedParty?.name||null,party_role:selectedParty?.role||null,letter_body:aiDraft,compose_mode:composeMode,language:transLang||"en",status:"dispatched"})}); } catch(e) {}
+
+  // 2. If claim — also save to claim correspondence so it appears in Claims app
+  if(searchType==="claim" && selectedRecord?.ref) {
+    const channels = distChannels.map((c:string)=>c.charAt(0).toUpperCase()+c.slice(1)).join(", ") || "Letter";
+    try {
+      await fetch("/api/claims-correspondence",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({
+        claim_reference: selectedRecord.ref,
+        direction: "Outbound",
+        channel: channels,
+        subject: `Letter — ${selectedParty?.role||"Policyholder"}`,
+        summary: (aiDraft||"").substring(0,200),
+        created_by: userEmail,
+      })});
+    } catch(e) {}
+  }
+
+  // 3. WhatsApp dispatch
+  if(distChannels.includes("wa")){
+    fetch("/api/generate-pdf",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({letterBody:aiDraft||TEMPLATE_BODY,documentId:Date.now()})}).then(r=>r.json()).then(pdf=>{ fetch("/api/whatsapp",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({to:waPhone || "+447825806679",message:"Please find your document from RDT Limited attached.",mediaUrl:pdf.url})}).then(r=>r.json()).then(d=>console.log("WA:",d)).catch(e=>console.error("WA:",e)); }).catch(e=>console.error("PDF:",e));
+  }
+
+  // 4. Local Print — open branded print window
+  if(distChannels.includes("localprint")){
+    const recipientName = selectedParty?.name || selectedRecord?.name || "";
+    const recipientAddr = selectedParty?.address || "";
+    const today = new Date().toLocaleDateString("en-GB",{day:"numeric",month:"long",year:"numeric"});
+    const senderName = realUsers.find((u:any)=>u.email===userEmail)?.name || userEmail;
+    const printWin = window.open("","_blank","width=820,height=900");
+    if(printWin){
+      printWin.document.write(`<!DOCTYPE html><html><head><title>Letter</title><style>
+        body{font-family:Georgia,serif;margin:0;padding:0;color:#111;}
+        .page{max-width:720px;margin:0 auto;padding:40px 50px;}
+        .header{display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:16px;border-bottom:3px solid #eb5f0a;margin-bottom:24px;}
+        .logo{font-size:28px;font-weight:900;letter-spacing:-1px;}<span style="color:#eb5f0a">RDT</span>
+        .addr-block{font-size:13px;line-height:1.7;margin-bottom:24px;}
+        .body{font-size:14px;line-height:1.8;white-space:pre-wrap;margin-bottom:32px;}
+        .sig{font-size:14px;line-height:1.8;}
+        .footer{margin-top:40px;padding-top:12px;border-top:1px solid #ddd;font-size:11px;color:#666;text-align:center;}
+        @media print{body{margin:0;}button{display:none;}}
+      </style></head><body>
+      <div class="page">
+        <div class="header">
+          <div style="font-size:28px;font-weight:900;letter-spacing:-1px;"><span style="color:#eb5f0a">RDT</span> Limited</div>
+          <div style="text-align:right;font-size:12px;line-height:1.7;color:#555;">
+            Kings Court, 17 School Road<br>Birmingham, B28 8JG<br>${today}
+          </div>
+        </div>
+        <div class="addr-block">
+          <strong>${recipientName}</strong><br>${recipientAddr.replace(/,\s*/g,"<br>")}
+        </div>
+        <div class="body">${(aiDraft||"").replace(/</g,"&lt;").replace(/>/g,"&gt;")}</div>
+        <div class="sig">
+          <p>Yours sincerely,</p>
+          <br>
+          <p><strong>${senderName}</strong><br>${userEmail}<br>RDT Limited</p>
+        </div>
+        <div class="footer">RDT Limited · Registered in England &amp; Wales · ${today}</div>
+      </div>
+      <script>window.onload=()=>{window.print();}<\/script>
+      </body></html>`);
+      printWin.document.close();
+    }
+  }
+
+  notify("Job queued for dispatch"); setComposeStep(1);setDistChannels([]);setDistSchedule("immediate");setAiDraft("");setAiPrompt("");setAiPurpose("");setAiRecipient("");setComposeMode("template");setSelectedRecord(null);setSearchQuery("");setSelectedParty(null);setClaimPartyStep(false);setTransLang("");setTransOpen(false);setCSearch("");setCCat("All");setWaPhone("");
+}} style={{ ...bP, flex:1 }}>
                           Confirm &amp; Dispatch
                         </button>
                         <button onClick={()=>setComposeStep(4)} style={bS}>Back</button>
