@@ -290,6 +290,7 @@ const [templatesLoading, setTemplatesLoading] = useState(false);
   const [distSchedule, setDistSchedule] = useState("immediate");
   const [emailConfig, setEmailConfig] = useState({ source:"pas", manualList:"", subject:"Your Policy Renewal – Action Required", fromName:"RDT Limited", fromEmail:"noreply@rdtltd.com", replyTo:"renewals@rdtltd.com", format:"attachment", testEmail:"" });
   const [emailTab, setEmailTab] = useState("recipients");
+  const [waPhone, setWaPhone] = useState("");
   const [bulkPct, setBulkPct] = useState(0);
   const [bulkRun, setBulkRun] = useState(false);
   // user admin
@@ -367,10 +368,10 @@ const [templatesLoading, setTemplatesLoading] = useState(false);
               {sideOpen && <div style={{ fontSize:10, color:"rgba(255,255,255,0.4)", fontWeight:600, letterSpacing:"0.08em", padding:"4px 10px 2px", textTransform:"uppercase" as const }}>{sec}</div>}
               {navBySec(sec).map(item => {
                 const active = nav===item.id;
-                return <button key={item.id} onClick={()=>setNav(item.id)} style={{ width:"100%", display:"flex", alignItems:"center", gap:8, padding:"8px 10px", borderRadius:7, border:"none", cursor:"pointer", background:active?`${AC}12`:"transparent", color:active?AC:TS, fontSize:13, fontFamily:F, fontWeight:active?600:400, marginBottom:1, textAlign:"left" }}>
+                return <button key={item.id} onClick={()=>setNav(item.id)} style={{ width:"100%", display:"flex", alignItems:"center", gap:8, padding:"8px 10px", borderRadius:7, border:"none", cursor:"pointer", background:active?AC:"transparent", color:active?"#fff":"rgba(255,255,255,0.5)", fontSize:13, fontFamily:F, fontWeight:active?600:400, marginBottom:1, textAlign:"left" }}>
                   <span style={{ width:18, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>{ICONS[item.id]}</span>
                   {sideOpen && <span style={{ flex:1 }}>{item.label}</span>}
-                  {sideOpen && item.badge && <span style={{ background:active?`${AC}20`:"rgba(0,0,0,0.06)", color:active?AC:TS, fontSize:10, padding:"1px 6px", borderRadius:20, fontWeight:600 }}>{item.badge}</span>}
+                  {sideOpen && item.badge && <span style={{ background:active?"rgba(255,255,255,0.2)":"rgba(255,255,255,0.1)", color:"#fff", fontSize:10, padding:"1px 6px", borderRadius:20, fontWeight:600 }}>{item.badge}</span>}
                 </button>;
               })}
             </div>
@@ -1258,7 +1259,8 @@ const [templatesLoading, setTemplatesLoading] = useState(false);
                           { id:"portal", icon:"🌐", label:"Customer Portal",  desc:"Self-service inbox" },
                           { id:"sms",    icon:"💬", label:"SMS Notification", desc:"Link to online version" },
                           { id:"wa",     icon:"__WA__", label:"WhatsApp",         desc:"WhatsApp Business API" },
-                          { id:"archive",icon:"🗄️", label:"Archive Only",     desc:"Store without sending" },
+                          { id:"archive",    icon:"🗄️", label:"Archive Only",     desc:"Store without sending" },
+                          { id:"localprint", icon:"🖨️", label:"Local Print",      desc:"Print directly from browser" },
                         ].map(ch => {
                           const sel = distChannels.includes(ch.id);
                           return (
@@ -1438,6 +1440,48 @@ const [templatesLoading, setTemplatesLoading] = useState(false);
                           </div>
                         </div>
                       )}
+                      {/* WhatsApp config panel */}
+                      {distChannels.includes("wa") && (
+                        <div style={{ border:`1.5px solid ${AC}`, borderRadius:10, overflow:"hidden", marginBottom:16, background:"#fff" }}>
+                          <div style={{ background:ACL, padding:"12px 16px", borderBottom:`1px solid ${AC}30`, display:"flex", alignItems:"center", gap:10 }}>
+                            <span style={{ fontSize:18 }}>💬</span>
+                            <div style={{ flex:1 }}>
+                              <div style={{ fontSize:13, fontWeight:700, color:AC }}>WhatsApp Configuration</div>
+                              <div style={{ fontSize:11, color:TS }}>Recipient mobile number for WhatsApp delivery</div>
+                            </div>
+                          </div>
+                          <div style={{ padding:"14px 16px" }}>
+                            <label style={{ fontSize:12, fontWeight:600, color:TS, display:"block", marginBottom:6 }}>Mobile number (international format)</label>
+                            <input
+                              type="tel"
+                              placeholder={selectedParty?.phone ? `e.g. ${selectedParty.phone}` : "e.g. +447700900123"}
+                              value={waPhone || (selectedParty?.phone ? selectedParty.phone.replace(/^0/, "+44").replace(/\s/g,"") : "")}
+                              onChange={e=>setWaPhone(e.target.value)}
+                              style={iS}
+                            />
+                            {selectedParty?.phone && (
+                              <div style={{ fontSize:11, color:GR, marginTop:6 }}>✓ Pre-filled from {selectedParty.name} ({selectedParty.role})</div>
+                            )}
+                            {!selectedParty?.phone && (
+                              <div style={{ fontSize:11, color:AM, marginTop:6 }}>⚠️ No phone number on record — please enter manually</div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Local print config panel */}
+                      {distChannels.includes("localprint") && (
+                        <div style={{ border:`1.5px solid ${AC}`, borderRadius:10, overflow:"hidden", marginBottom:16, background:"#fff" }}>
+                          <div style={{ background:ACL, padding:"12px 16px", display:"flex", alignItems:"center", gap:10 }}>
+                            <span style={{ fontSize:18 }}>🖨️</span>
+                            <div style={{ flex:1 }}>
+                              <div style={{ fontSize:13, fontWeight:700, color:AC }}>Local Print</div>
+                              <div style={{ fontSize:11, color:TS }}>Opens browser print dialog when you confirm dispatch</div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
                       <div style={{ background:PG, borderRadius:8, padding:14, marginBottom:16 }}>
                         <div style={{ fontSize:12, fontWeight:600, color:TS, marginBottom:10 }}>Dispatch schedule</div>
                         <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
@@ -1462,7 +1506,7 @@ const [templatesLoading, setTemplatesLoading] = useState(false);
                           <div style={{ fontSize:12, fontWeight:600, color:TS, marginBottom:8 }}>Fallback order</div>
                           <div style={{ fontSize:12, color:TM, marginBottom:8 }}>If primary channel fails, attempt next in order</div>
                           {distChannels.map((ch,i)=>{
-                            const info = [{id:"print",icon:"🖨️",label:"Central Print"},{id:"email",icon:"✉️",label:"Email"},{id:"portal",icon:"🌐",label:"Portal"},{id:"sms",icon:"💬",label:"SMS"},{id:"wa",icon:"__WA__",label:"WhatsApp"},{id:"archive",icon:"🗄️",label:"Archive"}].find(c=>c.id===ch);
+                            const info = [{id:"print",icon:"🖨️",label:"Central Print"},{id:"email",icon:"✉️",label:"Email"},{id:"portal",icon:"🌐",label:"Portal"},{id:"sms",icon:"💬",label:"SMS"},{id:"wa",icon:"__WA__",label:"WhatsApp"},{id:"archive",icon:"🗄️",label:"Archive"},{id:"localprint",icon:"🖨️",label:"Local Print"}].find(c=>c.id===ch);
                             return (
                               <div key={ch} style={{ display:"flex", alignItems:"center", gap:10, padding:"7px 0", borderBottom:i<distChannels.length-1?`1px solid ${BD}`:"none", fontSize:13 }}>
                                 <span style={{ width:20, height:20, borderRadius:"50%", background:AC, color:"#fff", fontSize:10, fontWeight:700, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>{i+1}</span>
@@ -1520,9 +1564,15 @@ const [templatesLoading, setTemplatesLoading] = useState(false);
 
                       <div style={{ display:"flex", gap:10 }}>
                         <button onClick={async ()=>{ try { await fetch("/api/documents",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({associated_type:searchType,associated_ref:selectedRecord?.ref||null,associated_name:selectedRecord?.name||null,party_name:selectedParty?.name||null,party_role:selectedParty?.role||null,letter_body:aiDraft,compose_mode:composeMode,language:transLang||"en",status:"dispatched"})}); } catch(e) {} if(distChannels.includes("wa")){
-   fetch("/api/generate-pdf",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({letterBody:aiDraft||TEMPLATE_BODY,documentId:Date.now()})}).then(r=>r.json()).then(pdf=>{ fetch("/api/whatsapp",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({to:"+447825806679",message:"Please find your document from RDT Limited attached.",mediaUrl:pdf.url})}).then(r=>r.json()).then(d=>console.log("WA:",d)).catch(e=>console.error("WA:",e)); }).catch(e=>console.error("PDF:",e));
+  const waTo = waPhone || (selectedParty?.phone ? selectedParty.phone.replace(/^0/,"+44").replace(/\s/g,"") : "");
+  if(waTo){ fetch("/api/generate-pdf",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({letterBody:aiDraft||TEMPLATE_BODY,documentId:Date.now()})}).then(r=>r.json()).then(pdf=>{ fetch("/api/whatsapp",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({to:waTo,message:"Please find your document from RDT Limited attached.",mediaUrl:pdf.url})}).then(r=>r.json()).then(d=>console.log("WA:",d)).catch(e=>console.error("WA:",e)); }).catch(e=>console.error("PDF:",e)); } else { notify("WhatsApp number missing — message not sent","error"); }
 }
-notify("Job queued for dispatch"); setComposeStep(1);setDistChannels([]);setDistSchedule("immediate");setAiDraft("");setAiPrompt("");setAiPurpose("");setAiRecipient("");setComposeMode("template");setSelectedRecord(null);setSearchQuery("");setSelectedParty(null);setClaimPartyStep(false);setTransLang("");setTransOpen(false);setCSearch("");setCCat("All");}} style={{ ...bP, flex:1 }}>
+if(distChannels.includes("localprint")){
+  const printBody = aiDraft || TEMPLATE_BODY;
+  const win = window.open("","_blank");
+  if(win){ win.document.write(`<!DOCTYPE html><html><head><title>RDT Letter</title><style>body{font-family:Georgia,serif;max-width:700px;margin:40px auto;font-size:14px;line-height:1.8;color:#111}@media print{body{margin:20px}}</style></head><body><pre style="white-space:pre-wrap;font-family:Georgia,serif">${printBody.replace(/</g,"&lt;").replace(/>/g,"&gt;")}</pre></body></html>`); win.document.close(); win.focus(); win.print(); }
+}
+notify("Job queued for dispatch"); setComposeStep(1);setDistChannels([]);setDistSchedule("immediate");setAiDraft("");setAiPrompt("");setAiPurpose("");setAiRecipient("");setComposeMode("template");setSelectedRecord(null);setSearchQuery("");setSelectedParty(null);setClaimPartyStep(false);setTransLang("");setTransOpen(false);setCSearch("");setCCat("All");setWaPhone("");}} style={{ ...bP, flex:1 }}>
                           Confirm &amp; Dispatch
                         </button>
                         <button onClick={()=>setComposeStep(4)} style={bS}>Back</button>
