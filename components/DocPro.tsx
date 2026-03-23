@@ -39,7 +39,7 @@ const PMATRIX = [
 ];
 
 const INIT_USERS = [
-  { id:1, name:{realUsers.find((u:any)=>u.email===userEmail)?.name || userEmail},     email:{userEmail},     role:"doc_admin",    dept:"Operations", status:"Active",   lastLogin:"Today 09:41", mfa:true  },
+  { id:1, name:"Sarah Kent",     email:"s.kent@rdtltd.com",     role:"doc_admin",    dept:"Operations", status:"Active",   lastLogin:"Today 09:41", mfa:true  },
   { id:2, name:"James Thomas",   email:"j.thomas@rdtltd.com",   role:"doc_editor",   dept:"Operations", status:"Active",   lastLogin:"Today 08:55", mfa:true  },
   { id:3, name:"Emma Reynolds",  email:"e.reynolds@rdtltd.com", role:"approver",     dept:"Compliance", status:"Active",   lastLogin:"Yesterday",   mfa:true  },
   { id:4, name:"David Mitchell", email:"d.mitchell@rdtltd.com", role:"workflow_mgr", dept:"IT",         status:"Active",   lastLogin:"Today 07:30", mfa:false },
@@ -421,7 +421,7 @@ const [templatesLoading, setTemplatesLoading] = useState(false);
         <header style={{ height:60, background:"#fff", borderBottom:`1px solid ${BD}`, display:"flex", alignItems:"center", padding:"0 24px", gap:12, flexShrink:0 }}>
           <div style={{ flex:1, fontSize:13, color:TM }}>DocPro <span style={{ color:BD }}>›</span> <span style={{ color:TP, fontWeight:600 }}>{nav==="compose" ? "Compose Letter" : NAV_ITEMS.find(i=>i.id===nav)?.label}</span></div>
           <span style={{ background:GL, color:"#16a34a", fontSize:11, padding:"3px 10px", borderRadius:20, fontWeight:600 }}>● Live</span>
-          <div style={{ width:32, height:32, borderRadius:"50%", background:`${AC}20`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:12, fontWeight:700, color:AC }}>SK</div>
+          <div style={{ width:32, height:32, borderRadius:"50%", background:`${AC}20`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:12, fontWeight:700, color:AC }}>{(realUsers.find((u:any)=>u.email===userEmail)?.name||userEmail||"?").split(" ").map((w:string)=>w[0]).join("").slice(0,2).toUpperCase()}</div>
         </header>
 
         <main style={{ flex:1, overflowY:"auto", padding:24 }}>
@@ -1171,13 +1171,13 @@ Rules:
                           {/* Signature block */}
                           <div style={{ borderTop:`1px solid ${BD}`, paddingTop:14, display:"flex", justifyContent:"space-between", alignItems:"flex-end" }}>
                             <div>
-                              <div style={{ fontSize:16, fontStyle:"italic", color:"#333", marginBottom:4, fontFamily:"Georgia, serif" }}>Sarah Kent</div>
-                              <div style={{ fontSize:12, fontWeight:600, color:TP, fontFamily:F }}>Sarah Kent</div>
+                              <div style={{ fontSize:16, fontStyle:"italic", color:"#333", marginBottom:4, fontFamily:"Georgia, serif" }}>{realUsers.find((u:any)=>u.email===userEmail)?.name||userEmail}</div>
+                              <div style={{ fontSize:12, fontWeight:600, color:TP, fontFamily:F }}>{realUsers.find((u:any)=>u.email===userEmail)?.name||userEmail}</div>
                               <div style={{ fontSize:11, color:TS, fontFamily:F }}>Doc Administrator</div>
                               <div style={{ fontSize:11, color:TS, fontFamily:F }}>RDT Limited</div>
                             </div>
                             <div style={{ textAlign:"right", fontSize:10, color:TM, fontFamily:F, lineHeight:1.6 }}>
-                              <div>s.kent@rdtltd.com</div>
+                              <div>{userEmail}</div>
                               <div>0121 000 0000</div>
                             </div>
                           </div>
