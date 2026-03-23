@@ -1653,8 +1653,7 @@ ${letterBody}`
     const today = new Date().toLocaleDateString("en-GB",{day:"numeric",month:"long",year:"numeric"});
     const senderName = realUsers.find((u:any)=>u.email===userEmail)?.name || userEmail;
     const senderRole = ROLES.find((r:any)=>r.id===realUsers.find((u:any)=>u.email===userEmail)?.role)?.label || "Doc Administrator";
-    const bodyHtml = (aiDraft||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/
-/g,"<br>");
+    const bodyHtml = (aiDraft||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\n/g,"<br>");
     const addrLines = recipientAddr ? recipientAddr.split(/,\s*/).map((l:string)=>l.trim()).filter(Boolean).join("<br>") : "";
     const printWin = window.open("","_blank","width=850,height=1000");
     if(printWin){
