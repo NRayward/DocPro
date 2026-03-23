@@ -1568,9 +1568,94 @@ const [templatesLoading, setTemplatesLoading] = useState(false);
   if(waTo){ fetch("/api/generate-pdf",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({letterBody:aiDraft||TEMPLATE_BODY,documentId:Date.now()})}).then(r=>r.json()).then(pdf=>{ fetch("/api/whatsapp",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({to:waTo,message:"Please find your document from RDT Limited attached.",mediaUrl:pdf.url})}).then(r=>r.json()).then(d=>console.log("WA:",d)).catch(e=>console.error("WA:",e)); }).catch(e=>console.error("PDF:",e)); } else { notify("WhatsApp number missing — message not sent","error"); }
 }
 if(distChannels.includes("localprint")){
-  const printBody = aiDraft || TEMPLATE_BODY;
+  const rawPrintBody = aiDraft || TEMPLATE_BODY;
+  const printBody = Object.entries(mergeData).reduce((b,[k,v])=>b.split(k).join(v), rawPrintBody);
+  const custName = mergeData["{{CUSTOMER_NAME}}"] || "";
+  const addr1 = mergeData["{{ADDRESS_LINE1}}"] || "";
+  const postcode = mergeData["{{POSTCODE}}"] || "";
+  const policyRef = mergeData["{{POLICY_NUMBER}}"] || "";
+  const today = new Date().toLocaleDateString("en-GB", {day:"numeric",month:"long",year:"numeric"});
+  const sigName = (()=>{ const u=realUsers.find((u)=>u.email===userEmail); return u?.name||userEmail; })();
+  const sigRole = (()=>{ const u=realUsers.find((u)=>u.email===userEmail); return ROLES.find((r)=>r.id===u?.role)?.label||"Doc Administrator"; })();
   const win = window.open("","_blank");
-  if(win){ win.document.write(`<!DOCTYPE html><html><head><title>RDT Letter</title><style>body{font-family:Georgia,serif;max-width:700px;margin:40px auto;font-size:14px;line-height:1.8;color:#111}@media print{body{margin:20px}}</style></head><body><pre style="white-space:pre-wrap;font-family:Georgia,serif">${printBody.replace(/</g,"&lt;").replace(/>/g,"&gt;")}</pre></body></html>`); win.document.close(); win.focus(); win.print(); }
+  if(win){ win.document.write(`<!DOCTYPE html>
+<html>
+<head>
+  <title>RDT Letter${policyRef?" — "+policyRef:""}</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Georgia, serif; font-size: 13px; color: #1a1a1a; background: #fff; }
+    .page { max-width: 740px; margin: 0 auto; }
+    .letterhead { padding: 20px 28px 14px; border-bottom: 3px solid #eb5f0a; display: flex; justify-content: space-between; align-items: center; }
+    .letterhead img { height: 66px; width: 198px; object-fit: contain; }
+    .letterhead-address { text-align: right; font-size: 11px; color: #555; line-height: 1.7; font-family: Arial, sans-serif; }
+    .letterhead-address strong { color: #1a1a1a; font-size: 12px; }
+    .body { padding: 20px 28px 16px; }
+    .meta { display: flex; justify-content: space-between; margin-bottom: 16px; font-size: 12px; color: #555; font-family: Arial, sans-serif; }
+    .recipient { margin-bottom: 16px; font-size: 12px; line-height: 1.7; font-family: Arial, sans-serif; }
+    .recipient strong { color: #1a1a1a; }
+    .letter-content { line-height: 1.8; white-space: pre-wrap; color: #333; font-size: 13px; }
+    .sign-off { margin: 20px 0 16px; line-height: 1.8; }
+    .sig-block { border-top: 1px solid #e5e7eb; padding-top: 14px; display: flex; justify-content: space-between; align-items: flex-end; }
+    .sig-name { font-size: 16px; font-style: italic; color: #333; margin-bottom: 4px; }
+    .sig-label { font-size: 12px; font-weight: 600; color: #111827; font-family: Arial, sans-serif; }
+    .sig-role { font-size: 11px; color: #6b7280; font-family: Arial, sans-serif; }
+    .sig-contact { text-align: right; font-size: 10px; color: #9ca3af; font-family: Arial, sans-serif; line-height: 1.6; }
+    .footer { background: #1a1f2e; padding: 10px 28px; display: flex; justify-content: space-between; align-items: center; margin-top: 0; }
+    .footer-left { font-size: 10px; color: rgba(255,255,255,0.6); font-family: Arial, sans-serif; }
+    .footer-right { font-size: 10px; color: rgba(255,255,255,0.5); font-family: Arial, sans-serif; }
+    .footer-right span { color: rgba(255,255,255,0.8); font-weight: 600; }
+    @media print {
+      body { margin: 0; }
+      .page { max-width: 100%; }
+      @page { margin: 0; }
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+  <div class="letterhead">
+    <img src="${RDT_LOGO}" alt="RDT" />
+    <div class="letterhead-address">
+      <strong>RDT Limited</strong><br/>
+      Kings Court, 17 School Road<br/>
+      Birmingham, B28 8JG<br/>
+      info@rdtltd.com
+    </div>
+  </div>
+  <div class="body">
+    <div class="meta">
+      <span>${policyRef ? "Ref: " + policyRef : ""}</span>
+      <span>Date: ${today}</span>
+    </div>
+    <div class="recipient">
+      ${custName ? "<strong>" + custName + "</strong><br/>" : ""}
+      ${addr1 ? addr1 + "<br/>" : ""}
+      ${postcode ? postcode : ""}
+    </div>
+    <div class="letter-content">${printBody.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}</div>
+    <div class="sign-off">Yours sincerely,</div>
+    <div class="sig-block">
+      <div>
+        <div class="sig-name">${sigName}</div>
+        <div class="sig-label">${sigName}</div>
+        <div class="sig-role">${sigRole}</div>
+        <div class="sig-role">RDT Limited</div>
+      </div>
+      <div class="sig-contact">
+        ${userEmail}<br/>
+        0121 000 0000
+      </div>
+    </div>
+  </div>
+  <div class="footer">
+    <div class="footer-left">RDT Limited &middot; Registered in England &amp; Wales No. 12345678</div>
+    <div class="footer-right">Prepared by: <span>${sigName}</span></div>
+  </div>
+</div>
+</body>
+</html>`);
+  win.document.close(); win.focus(); win.print(); }
 }
 notify("Job queued for dispatch"); setComposeStep(1);setDistChannels([]);setDistSchedule("immediate");setAiDraft("");setAiPrompt("");setAiPurpose("");setAiRecipient("");setComposeMode("template");setSelectedRecord(null);setSearchQuery("");setSelectedParty(null);setClaimPartyStep(false);setTransLang("");setTransOpen(false);setCSearch("");setCCat("All");setWaPhone("");}} style={{ ...bP, flex:1 }}>
                           Confirm &amp; Dispatch
