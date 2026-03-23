@@ -392,7 +392,7 @@ const [templatesLoading, setTemplatesLoading] = useState(false);
           <div style={{ flex:1, fontSize:13, color:TM }}>DocPro <span style={{ color:BD }}>›</span> <span style={{ color:TP, fontWeight:600 }}>{nav==="compose" ? "Compose Letter" : NAV_ITEMS.find(i=>i.id===nav)?.label}</span></div>
           <span style={{ background:GL, color:"#16a34a", fontSize:11, padding:"3px 10px", borderRadius:20, fontWeight:600 }}>● Live</span>
           <div title={userEmail} style={{ width:32, height:32, borderRadius:"50%", background:`${AC}20`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:12, fontWeight:700, color:AC }}>
-            {(()=>{ const u = realUsers.find((u:any)=>u.email===userEmail); const name = u?.name || userEmail; return name.split(" ").map((w:string)=>w[0]).join("").slice(0,2).toUpperCase() || "?"; })()}
+            {(()=>{ const u=realUsers.find((u:any)=>u.email===userEmail); const name=u?.name||userEmail; return name.split(" ").map((w:string)=>w[0]).join("").slice(0,2).toUpperCase()||"?"; })()}
           </div>
         </header>
 
@@ -954,34 +954,14 @@ const [templatesLoading, setTemplatesLoading] = useState(false);
                               setAiGenerating(true);
                               setAiDraft("");
                               try {
-                                const res = await fetch("https://api.anthropic.com/v1/messages",{
+                                const res = await fetch("/api/ai/generate",{
                                   method:"POST",
                                   headers:{"Content-Type":"application/json"},
-                                  body:JSON.stringify({
-                                    model:"claude-sonnet-4-20250514",
-                                    max_tokens:1000,
-                                    messages:[{
-                                      role:"user",
-                                      content:`You are a professional insurance correspondence writer for RDT Limited, an insurance technology company based in Birmingham, UK.
-
-Write the BODY CONTENT ONLY of a letter based on the following instructions:
-
-Recipient: ${aiRecipient}
-Tone: ${aiTone}
-Instructions: ${aiPrompt}
-
-Rules:
-- Start with "Dear {{CUSTOMER_NAME}},"
-- Where relevant, use merge fields in double curly braces: {{POLICY_NUMBER}}, {{RENEWAL_DATE}}, {{PREMIUM_AMOUNT}}, {{NCD_YEARS}}, {{CLAIM_REFERENCE}}
-- Write 2-4 concise paragraphs
-- End with "Yours sincerely,"
-- Do NOT include letterhead, address block, signature block or date — those are added automatically
-- Plain text only, no markdown, no bullet points`
-                                    }]
-                                  })
+                                  body:JSON.stringify({ prompt:aiPrompt, tone:aiTone, recipient:aiRecipient })
                                 });
                                 const data = await res.json();
-                                const text = data.content?.find(b=>b.type==="text")?.text || "";
+                                const text = data.text || "";
+                                if(!text) throw new Error("Empty response");
                                 setAiDraft(text);
                                 notify("Draft generated — review and edit below");
                               } catch(e) {
@@ -1141,7 +1121,7 @@ Rules:
                           <p style={{ marginBottom:20, marginTop:16, lineHeight:1.8 }}>Yours sincerely,</p>
 
                           {/* Signature block — current user */}
-                          {(()=>{ const u = realUsers.find((u:any)=>u.email===userEmail); const name = u?.name || userEmail; const role = ROLES.find((r:any)=>r.id===u?.role)?.label || u?.role || "Doc Administrator"; return (
+                          {(()=>{ const u=realUsers.find((u:any)=>u.email===userEmail); const name=u?.name||userEmail; const role=ROLES.find((r:any)=>r.id===u?.role)?.label||"Doc Administrator"; return (
                           <div style={{ borderTop:`1px solid ${BD}`, paddingTop:14, display:"flex", justifyContent:"space-between", alignItems:"flex-end" }}>
                             <div>
                               <div style={{ fontSize:16, fontStyle:"italic", color:"#333", marginBottom:4, fontFamily:"Georgia, serif" }}>{name}</div>
@@ -1222,32 +1202,14 @@ Rules:
                                 const targetLang = langNames[transLang]||transLang;
                                 setTransGenerating(true);
                                 try {
-                                  const res = await fetch("https://api.anthropic.com/v1/messages",{
+                                  const res = await fetch("/api/ai/translate",{
                                     method:"POST",
                                     headers:{"Content-Type":"application/json"},
-                                    body:JSON.stringify({
-                                      model:"claude-sonnet-4-20250514",
-                                      max_tokens:1200,
-                                      messages:[{
-                                        role:"user",
-                                        content:`You are a professional translator specialising in insurance and legal correspondence.
-
-Translate the following insurance letter into ${targetLang}.
-
-Rules:
-- Translate ALL natural language text into ${targetLang}
-- Keep ALL merge fields EXACTLY as they are in double curly braces, e.g. {{CUSTOMER_NAME}}, {{POLICY_NUMBER}} — do NOT translate these
-- Keep "Dear {{CUSTOMER_NAME}}," and "Yours sincerely," translated into ${targetLang} equivalents
-- Maintain a professional, formal tone appropriate for insurance correspondence
-- Output ONLY the translated letter body — no explanations, no preamble
-
-Letter to translate:
-${letterBody}`
-                                      }]
-                                    })
+                                    body:JSON.stringify({ letter:letterBody, language:targetLang })
                                   });
                                   const data = await res.json();
-                                  const translated = data.content?.find(b=>b.type==="text")?.text||"";
+                                  const translated = data.text || "";
+                                  if(!translated) throw new Error("Empty response");
                                   setAiDraft(translated);
                                   notify(`Letter translated to ${targetLang}`);
                                   setTransOpen(false);
@@ -1549,7 +1511,7 @@ ${letterBody}`
                           ["Recipients","4,200 · PAS extract"],
                           ["Channels",  distChannels.length ? distChannels.map(c=>c.charAt(0).toUpperCase()+c.slice(1)).join(", ") : "—"],
                           ["Schedule",  distSchedule==="immediate"?"Send immediately":distSchedule==="scheduled"?"Scheduled":"Pending approval"],
-                          ["Prepared by","", (()=>{ const u = realUsers.find((u:any)=>u.email===userEmail); const name = u?.name || userEmail; const role = ROLES.find((r:any)=>r.id===u?.role)?.label || "Doc Administrator"; return `${name} · ${role}`; })()],
+                          ["Prepared by","", (()=>{ const u=realUsers.find((u:any)=>u.email===userEmail); const name=u?.name||userEmail; const role=ROLES.find((r:any)=>r.id===u?.role)?.label||"Doc Administrator"; return `${name} · ${role}`; })()],
                         ].map(([k,v],i,arr)=>(
                           <div key={k} style={{ display:"flex", justifyContent:"space-between", padding:"10px 14px", borderBottom:i<arr.length-1?`1px solid ${BD}`:"none", fontSize:13 }}>
                             <span style={{ color:TM, fontWeight:500 }}>{k}</span>
