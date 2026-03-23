@@ -3,11 +3,12 @@
 import { useState, useEffect } from "react";
 import { createClient } from "@supabase/supabase-js";
 
-const AC = "#4f6ef7"; const ACL = "#eef1fe"; const PG = "#f0f2f5"; const CB = "#ffffff";
-const BD = "#e5e8ef"; const TP = "#1a1f2e"; const TS = "#6b7280"; const TM = "#9ca3af";
-const GR = "#22c55e"; const GL = "#dcfce7"; const AM = "#f59e0b"; const AL = "#fef3c7";
-const RD = "#ef4444"; const RL = "#fee2e2"; const PU = "#8b5cf6"; const PL = "#ede9fe";
-const OR = "#f97316"; const OL = "#ffedd5";
+const AC = "#f97316"; const ACL = "#fff7ed"; const PG = "#f4f5f7"; const CB = "#ffffff";
+const BD = "#e5e7eb"; const TP = "#111827"; const TS = "#6b7280"; const TM = "#9ca3af";
+const GR = "#059669"; const GL = "#ecfdf5"; const AM = "#d97706"; const AL = "#fffbeb";
+const RD = "#dc2626"; const RL = "#fef2f2"; const PU = "#7c3aed"; const PL = "#f5f3ff";
+const OR = "#f97316"; const OL = "#fff7ed";
+const SIDEBAR = "#1e2433";
 const F = "'Inter', system-ui, sans-serif";
 const bP = { padding:"8px 18px", borderRadius:7, fontSize:13, cursor:"pointer", fontFamily:F, fontWeight:600, background:AC, color:"#fff", border:"none", whiteSpace:"nowrap" };
 const bS = { padding:"8px 18px", borderRadius:7, fontSize:13, cursor:"pointer", fontFamily:F, fontWeight:500, background:"#fff", color:TS, border:`1px solid ${BD}`, whiteSpace:"nowrap" };
@@ -317,13 +318,13 @@ const [templatesLoading, setTemplatesLoading] = useState(false);
       )}
 
       {/* Sidebar */}
-      <aside style={{ width:sideOpen?224:56, minHeight:"100vh", background:"#fff", borderRight:`1px solid ${BD}`, display:"flex", flexDirection:"column", transition:"width 0.2s", flexShrink:0, overflow:"hidden" }}>
-        <div style={{ height:82, display:"flex", alignItems:"center", justifyContent:sideOpen?"flex-start":"center", padding:sideOpen?"0 16px":"0 8px", borderBottom:`1px solid ${BD}`, flexShrink:0, background:"#fff", gap:8 }}>
+      <aside style={{ width:sideOpen?224:56, minHeight:"100vh", background:SIDEBAR, borderRight:"none", display:"flex", flexDirection:"column", transition:"width 0.2s", flexShrink:0, overflow:"hidden" }}>
+        <div style={{ height:82, display:"flex", alignItems:"center", justifyContent:sideOpen?"flex-start":"center", padding:sideOpen?"0 16px":"0 8px", borderBottom:"1px solid rgba(255,255,255,0.08)", flexShrink:0, background:SIDEBAR, gap:8 }}>
           <img src={RDT_LOGO} alt="RDT" style={{ height:sideOpen?70:57, width:sideOpen?210:66, objectFit:"contain", display:"block", flexShrink:0 }} />
         </div>
         <nav style={{ flex:1, padding:"8px 6px", overflowY:"auto" }}>
           {/* ── Compose CTA ── */}
-          <div style={{ padding:"8px 2px 10px", borderBottom:`1px solid ${BD}`, marginBottom:8 }}>
+          <div style={{ padding:"8px 2px 10px", borderBottom:"1px solid rgba(255,255,255,0.08)", marginBottom:8 }}>
             <button
               onClick={()=>setNav("compose")}
               style={{
@@ -339,9 +340,7 @@ const [templatesLoading, setTemplatesLoading] = useState(false);
                 fontFamily:F,
                 fontWeight:700,
                 fontSize:13,
-                background: nav==="compose"
-                  ? "linear-gradient(135deg,#3a5be0 0%,#6a3fd1 100%)"
-                  : "linear-gradient(135deg,#4f6ef7 0%,#7c5cf6 100%)",
+                background: AC,
                 color:"#fff",
                 boxShadow: nav==="compose"
                   ? "0 4px 14px rgba(79,110,247,0.55)"
@@ -355,15 +354,15 @@ const [templatesLoading, setTemplatesLoading] = useState(false);
           </div>
           {topItems.map(item => {
             const active = nav===item.id;
-            return <button key={item.id} onClick={()=>setNav(item.id)} style={{ width:"100%", display:"flex", alignItems:"center", gap:8, padding:"8px 10px", borderRadius:7, border:"none", cursor:"pointer", background:active?`${AC}12`:"transparent", color:active?AC:TS, fontSize:13, fontFamily:F, fontWeight:active?600:400, marginBottom:1, textAlign:"left" }}>
+            return <button key={item.id} onClick={()=>setNav(item.id)} style={{ width:"100%", display:"flex", alignItems:"center", gap:8, padding:"8px 10px", borderRadius:7, border:"none", cursor:"pointer", background:active?AC:"transparent", color:active?"#fff":"rgba(255,255,255,0.5)", fontSize:13, fontFamily:F, fontWeight:active?600:400, marginBottom:1, textAlign:"left" }}>
               <span style={{ width:18, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>{ICONS[item.id]}</span>
               {sideOpen && <span style={{ flex:1 }}>{item.label}</span>}
-              {sideOpen && item.badge && <span style={{ background:active?`${AC}20`:"rgba(0,0,0,0.06)", color:active?AC:TS, fontSize:10, padding:"1px 6px", borderRadius:20, fontWeight:600 }}>{item.badge}</span>}
+              {sideOpen && item.badge && <span style={{ background:active?"rgba(255,255,255,0.2)":"rgba(255,255,255,0.1)", color:"#fff", fontSize:10, padding:"1px 6px", borderRadius:20, fontWeight:600 }}>{item.badge}</span>}
             </button>;
           })}
           {secs.map(sec => (
             <div key={sec} style={{ marginTop:12 }}>
-              {sideOpen && <div style={{ fontSize:10, color:"#b0b7c3", fontWeight:600, letterSpacing:"0.08em", padding:"4px 10px 2px" }}>{sec}</div>}
+              {sideOpen && <div style={{ fontSize:10, color:"rgba(255,255,255,0.4)", fontWeight:600, letterSpacing:"0.08em", padding:"4px 10px 2px", textTransform:"uppercase" as const }}>{sec}</div>}
               {navBySec(sec).map(item => {
                 const active = nav===item.id;
                 return <button key={item.id} onClick={()=>setNav(item.id)} style={{ width:"100%", display:"flex", alignItems:"center", gap:8, padding:"8px 10px", borderRadius:7, border:"none", cursor:"pointer", background:active?`${AC}12`:"transparent", color:active?AC:TS, fontSize:13, fontFamily:F, fontWeight:active?600:400, marginBottom:1, textAlign:"left" }}>
