@@ -1634,8 +1634,9 @@ ${letterBody}`
         direction: "Outbound",
         channel: channels,
         subject: `Letter — ${selectedParty?.role||"Policyholder"}`,
-        summary: (aiDraft||"").substring(0,200),
+        summary: aiDraft||"",
         created_by: userEmail,
+        document_ref: (selectedParty?.name||"") + (selectedParty?.role ? " ("+selectedParty.role+")" : ""),
       })});
     } catch(e) {}
   }
