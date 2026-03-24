@@ -1515,6 +1515,40 @@ ${rawBody}`
                         )}
                       </div>
 
+                      {/* WhatsApp config */}
+                      {distChannels.includes("wa") && (
+                        <div style={{ border:`1.5px solid ${AC}`, borderRadius:10, overflow:"hidden", marginBottom:16, background:"#fff" }}>
+                          <div style={{ background:ACL, padding:"12px 16px", borderBottom:`1px solid ${AC}30`, display:"flex", alignItems:"center", gap:10 }}>
+                            <Icon v="__WA__" size={20} />
+                            <div style={{ flex:1 }}>
+                              <div style={{ fontSize:13, fontWeight:700, color:AC }}>WhatsApp Configuration</div>
+                              <div style={{ fontSize:11, color:TS }}>Enter the recipient's WhatsApp number</div>
+                            </div>
+                          </div>
+                          <div style={{ padding:16 }}>
+                            <label style={{ fontSize:12, fontWeight:600, color:TS, display:"block", marginBottom:6 }}>
+                              Recipient phone number <span style={{ color:TM, fontWeight:400 }}>(international format)</span>
+                            </label>
+                            <input
+                              type="tel"
+                              placeholder="+44 7700 900000"
+                              value={waPhone}
+                              onChange={e => setWaPhone(e.target.value)}
+                              style={{ ...iS, marginBottom:10 }}
+                            />
+                            <div style={{ fontSize:11, color:TM }}>
+                              Include country code, e.g. +44 for UK. The letter will be sent as a PDF attachment via WhatsApp Business.
+                            </div>
+                            {waPhone && !/^\+[1-9]\d{6,14}$/.test(waPhone.replace(/\s/g,"")) && (
+                              <div style={{ fontSize:11, color:"#dc2626", marginTop:6 }}>⚠️ Please enter a valid international number starting with +</div>
+                            )}
+                            {waPhone && /^\+[1-9]\d{6,14}$/.test(waPhone.replace(/\s/g,"")) && (
+                              <div style={{ fontSize:11, color:"#16a34a", marginTop:6 }}>✓ Valid number — ready to send</div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
                       {/* Local Print config */}
                       {distChannels.includes("localprint") && (
                         <div style={{ border:`1.5px solid ${AC}`, borderRadius:10, overflow:"hidden", marginBottom:16, background:"#fff" }}>
@@ -1624,7 +1658,8 @@ ${rawBody}`
 
   // 3. WhatsApp dispatch
   if(distChannels.includes("wa")){
-    fetch("/api/generate-pdf",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({letterBody:aiDraft||TEMPLATE_BODY,documentId:Date.now()})}).then(r=>r.json()).then(pdf=>{ fetch("/api/whatsapp",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({to:waPhone || "+447825806679",message:"Please find your document from RDT Limited attached.",mediaUrl:pdf.url})}).then(r=>r.json()).then(d=>console.log("WA:",d)).catch(e=>console.error("WA:",e)); }).catch(e=>console.error("PDF:",e));
+    const phoneNum = (waPhone||selectedParty?.phone||"+447825806679").replace(/\s/g,"");
+    fetch("/api/generate-pdf",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({letterBody:aiDraft||TEMPLATE_BODY,documentId:Date.now()})}).then(r=>r.json()).then(pdf=>{ fetch("/api/whatsapp",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({to:phoneNum,message:"Please find your document from RDT Limited attached.",mediaUrl:pdf.url})}).then(r=>r.json()).then(d=>console.log("WA:",d)).catch(e=>console.error("WA:",e)); }).catch(e=>console.error("PDF:",e));
   }
 
   // 4. Local Print — open branded print window with full letterhead
