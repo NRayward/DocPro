@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { createClient } from "@supabase/supabase-js";
 
 const SIDEBAR = "#1e2433";
-const AC = "#4f6ef7"; const ACL = "#eef1fe"; const PG = "#f0f2f5"; const CB = "#ffffff";
+const AC = "#f97316"; const ACL = "#eef1fe"; const PG = "#f0f2f5"; const CB = "#ffffff";
 const BD = "#e5e8ef"; const TP = "#1a1f2e"; const TS = "#6b7280"; const TM = "#9ca3af";
 const GR = "#22c55e"; const GL = "#dcfce7"; const AM = "#f59e0b"; const AL = "#fef3c7";
 const RD = "#ef4444"; const RL = "#fee2e2"; const PU = "#8b5cf6"; const PL = "#ede9fe";
@@ -372,7 +372,7 @@ const [templatesLoading, setTemplatesLoading] = useState(false);
                 fontSize:13,
                 background: nav==="compose"
                   ? "linear-gradient(135deg,#3a5be0 0%,#6a3fd1 100%)"
-                  : "linear-gradient(135deg,#4f6ef7 0%,#7c5cf6 100%)",
+                  : "linear-gradient(135deg,#f97316 0%,#f97316 100%)",
                 color:"#fff",
                 boxShadow: nav==="compose"
                   ? "0 4px 14px rgba(79,110,247,0.55)"
@@ -489,7 +489,7 @@ const [templatesLoading, setTemplatesLoading] = useState(false);
                   {/* Horizontal bar chart */}
                   <div>
                     {[
-                      { label:"Central Print",    value:16240, pct:42, color:"#4f6ef7", icon:"🖨️" },
+                      { label:"Central Print",    value:16240, pct:42, color:"#f97316", icon:"🖨️" },
                       { label:"Email",             value:11524, pct:30, color:"#22c55e", icon:"✉️" },
                       { label:"Customer Portal",   value:5762,  pct:15, color:"#f59e0b", icon:"🌐" },
                       { label:"SMS",               value:2689,  pct:7,  color:"#8b5cf6", icon:"💬" },
@@ -519,7 +519,7 @@ const [templatesLoading, setTemplatesLoading] = useState(false);
                     <svg width="160" height="160" viewBox="0 0 160 160">
                       {(()=>{
                         const segs = [
-                          { pct:42, color:"#4f6ef7" },
+                          { pct:42, color:"#f97316" },
                           { pct:30, color:"#22c55e" },
                           { pct:15, color:"#f59e0b" },
                           { pct:7,  color:"#8b5cf6" },
@@ -551,7 +551,7 @@ const [templatesLoading, setTemplatesLoading] = useState(false);
                     {/* Legend */}
                     <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"4px 14px", marginTop:8 }}>
                       {[
-                        { label:"Print",   color:"#4f6ef7" },
+                        { label:"Print",   color:"#f97316" },
                         { label:"Email",   color:"#22c55e" },
                         { label:"Portal",  color:"#f59e0b" },
                         { label:"SMS",     color:"#8b5cf6" },
@@ -1269,7 +1269,7 @@ Rules:
 - Output ONLY the translated letter body — no explanations, no preamble
 
 Letter to translate:
-${aiDraft}`
+${rawBody}`
                                       }]
                                     })
                                   });
