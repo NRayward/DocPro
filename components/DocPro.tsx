@@ -370,13 +370,9 @@ const [templatesLoading, setTemplatesLoading] = useState(false);
                 fontFamily:F,
                 fontWeight:700,
                 fontSize:13,
-                background: nav==="compose"
-                  ? "linear-gradient(135deg,#3a5be0 0%,#6a3fd1 100%)"
-                  : "linear-gradient(135deg,#f97316 0%,#f97316 100%)",
+                background: "#f97316",
                 color:"#fff",
-                boxShadow: nav==="compose"
-                  ? "0 4px 14px rgba(79,110,247,0.55)"
-                  : "0 2px 8px rgba(79,110,247,0.35)",
+                boxShadow: "0 2px 8px rgba(249,115,22,0.4)",
                 transition:"all 0.15s",
               }}>
               <span style={{ display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>{ICONS.compose}</span>
