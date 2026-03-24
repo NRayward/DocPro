@@ -983,7 +983,7 @@ const [templatesLoading, setTemplatesLoading] = useState(false);
                               setAiGenerating(true);
                               setAiDraft("");
                               try {
-                                const res = await fetch("https://api.anthropic.com/v1/messages",{
+                                const res = await fetch("/api/ai",{
                                   method:"POST",
                                   headers:{"Content-Type":"application/json"},
                                   body:JSON.stringify({
@@ -1249,7 +1249,7 @@ Rules:
                                 const targetLang = langNames[transLang]||transLang;
                                 setTransGenerating(true);
                                 try {
-                                  const res = await fetch("https://api.anthropic.com/v1/messages",{
+                                  const res = await fetch("/api/ai",{
                                     method:"POST",
                                     headers:{"Content-Type":"application/json"},
                                     body:JSON.stringify({
