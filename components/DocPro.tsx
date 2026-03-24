@@ -233,6 +233,7 @@ fetch("/api/users")
   const [tSearch, setTSearch] = useState("");
 const [dbTemplates, setDbTemplates] = useState<any[]>([]);
 const [docHistory, setDocHistory] = useState<any[]>([]);
+const [historyFilter, setHistoryFilter] = useState("");
 const [realUsers, setRealUsers] = useState<any[]>([]);
 const [templatesLoading, setTemplatesLoading] = useState(false);
   const [tCat, setTCat] = useState("All");
@@ -1644,7 +1645,7 @@ ${rawBody}`
                       <div style={{ display:"flex", gap:10 }}>
                         <button onClick={async ()=>{
   // 1. Save to documents log
-  try { await fetch("/api/documents",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({associated_type:searchType,associated_ref:selectedRecord?.ref||null,associated_name:selectedRecord?.name||null,party_name:selectedParty?.name||null,party_role:selectedParty?.role||null,letter_body:aiDraft,compose_mode:composeMode,language:transLang||"en",status:"dispatched"})}); } catch(e) {}
+  try { await fetch("/api/documents",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({associated_type:searchType,associated_ref:selectedRecord?.ref||null,associated_name:selectedRecord?.name||null,party_name:selectedParty?.name||null,party_role:selectedParty?.role||null,letter_body:aiDraft,compose_mode:composeMode,language:transLang||"en",status:"dispatched",vehicle_reg:mergeData["{{VEHICLE_REG}}"]||null})}); } catch(e) {}
 
   // 2. If claim — also save to claim correspondence so it appears in Claims app
   if(searchType==="claim" && selectedRecord?.ref) {
@@ -1856,12 +1857,51 @@ ${rawBody}`
           )}
 
           {/* ═══ STORAGE ═══ */}
-          {nav==="storage" && (
-  <div style={{ padding:32, maxWidth:900 }}>
+          {nav==="storage" && (()=>{
+  const filteredHistory = historyFilter.trim()
+    ? docHistory.filter(doc => {
+        const q = historyFilter.trim().toLowerCase();
+        return (
+          (doc.associated_ref  || "").toLowerCase().includes(q) ||
+          (doc.associated_name || "").toLowerCase().includes(q) ||
+          (doc.party_name      || "").toLowerCase().includes(q) ||
+          (doc.vehicle_reg     || "").toLowerCase().includes(q)
+        );
+      })
+    : docHistory;
+  return (
+  <div style={{ padding:32, maxWidth:960 }}>
     <PH title="Document History" sub="Previously dispatched documents" />
+
+    {/* ── Filter bar ── */}
+    <Cd style={{ padding:"12px 16px", marginBottom:16, display:"flex", alignItems:"center", gap:10 }}>
+      <div style={{ position:"relative", flex:1 }}>
+        <span style={{ position:"absolute", left:11, top:"50%", transform:"translateY(-50%)", color:TM, display:"flex", alignItems:"center", pointerEvents:"none" }}>
+          <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </span>
+        <input
+          type="text"
+          placeholder="Filter by policy number, claim number, name or reg…"
+          value={historyFilter}
+          onChange={e => setHistoryFilter(e.target.value)}
+          style={{ ...iS, paddingLeft:34 }}
+        />
+      </div>
+      {historyFilter && (
+        <button onClick={() => setHistoryFilter("")} style={{ ...bS, padding:"8px 14px", fontSize:12, flexShrink:0 }}>Clear</button>
+      )}
+      <div style={{ fontSize:12, color:TM, whiteSpace:"nowrap", flexShrink:0 }}>
+        {filteredHistory.length} of {docHistory.length} record{docHistory.length!==1?"s":""}
+      </div>
+    </Cd>
+
     {docHistory.length === 0 ? (
       <div style={{ textAlign:"center", padding:60, color:TM, fontSize:14 }}>
         No documents dispatched yet. Use the Compose wizard to create and dispatch your first document.
+      </div>
+    ) : filteredHistory.length === 0 ? (
+      <div style={{ textAlign:"center", padding:60, color:TM, fontSize:14 }}>
+        No documents match <strong style={{ color:TP }}>"{historyFilter}"</strong>. Try a different search term.
       </div>
     ) : (
       <Cd>
@@ -1869,16 +1909,21 @@ ${rawBody}`
           <table style={{ width:"100%", borderCollapse:"collapse", fontSize:13 }}>
             <thead>
               <tr style={{ borderBottom:`2px solid ${BD}` }}>
-                {["ID","Associated","Party","Mode","Language","Status","Date"].map(h=>(
+                {["ID","Associated","Reg","Party","Mode","Language","Status","Date"].map(h=>(
                   <th key={h} style={{ padding:"10px 14px", textAlign:"left", color:TS, fontWeight:600, whiteSpace:"nowrap" }}>{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
-              {docHistory.map((doc,i)=>(
+              {filteredHistory.map((doc,i)=>(
                 <tr key={doc.id} style={{ borderBottom:`1px solid ${BD}`, background:i%2===0?"#fff":PG }}>
                   <td style={{ padding:"10px 14px", color:TM, fontFamily:"monospace" }}>#{doc.id}</td>
-                  <td style={{ padding:"10px 14px" }}>{doc.associated_name || "—"}<br/><span style={{ fontSize:11, color:TM }}>{doc.associated_ref || ""}</span></td>
+                  <td style={{ padding:"10px 14px" }}>{doc.associated_name || "—"}<br/><span style={{ fontSize:11, color:TM, fontFamily:"monospace" }}>{doc.associated_ref || ""}</span></td>
+                  <td style={{ padding:"10px 14px" }}>
+                    {doc.vehicle_reg
+                      ? <span style={{ fontFamily:"monospace", fontSize:12, background:ACL, color:AC, padding:"2px 7px", borderRadius:4, fontWeight:600 }}>{doc.vehicle_reg}</span>
+                      : <span style={{ color:TM }}>—</span>}
+                  </td>
                   <td style={{ padding:"10px 14px" }}>{doc.party_name || "—"}<br/><span style={{ fontSize:11, color:TM }}>{doc.party_role || ""}</span></td>
                   <td style={{ padding:"10px 14px" }}><Bdg label={doc.compose_mode || "template"} color={AC} light={ACL} /></td>
                   <td style={{ padding:"10px 14px" }}>{doc.language?.toUpperCase() || "EN"}</td>
@@ -1892,7 +1937,8 @@ ${rawBody}`
       </Cd>
     )}
   </div>
-)}
+  );
+})()}
           {/* ═══ ANALYTICS ═══ */}
           {nav==="analytics" && (
             <div>
