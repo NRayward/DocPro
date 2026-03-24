@@ -1269,7 +1269,7 @@ Rules:
 - Output ONLY the translated letter body — no explanations, no preamble
 
 Letter to translate:
-${letterBody}`
+${aiDraft}`
                                       }]
                                     })
                                   });
