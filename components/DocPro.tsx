@@ -1309,21 +1309,6 @@ ${rawBody}`
                   )})()}
                   {composeStep===4 && (
                     <div>
-                      <div style={{ marginBottom:12 }}>
-                        <label style={{ fontSize:12, color:TS, display:"block", marginBottom:5 }}>Recipient source</label>
-                        <select style={iS}><option>PAS extract — all renewing policies</option><option>Manual upload (CSV)</option><option>Single recipient</option></select>
-                      </div>
-                      <div style={{ background:PG, borderRadius:8, padding:14, fontSize:13, marginBottom:12 }}>
-                        <div style={{ fontWeight:600, marginBottom:4 }}>Preview count</div>
-                        <div style={{ fontSize:24, fontWeight:700, color:AC }}>4,200</div>
-                        <div style={{ fontSize:12, color:TM }}>recipients matched</div>
-                      </div>
-                      <button onClick={()=>setComposeStep(4)} style={{ ...bP, width:"100%" }}>Continue to Template Selection &#8594;</button>
-                    </div>
-                  )}
-
-                  {composeStep===4 && (
-                    <div>
                       <div style={{ fontSize:14, fontWeight:600, marginBottom:4 }}>Select distribution channels</div>
                       <div style={{ fontSize:12, color:TM, marginBottom:16 }}>Choose how this letter will be delivered to recipients</div>
 
@@ -1428,7 +1413,7 @@ ${rawBody}`
                                 {emailConfig.source==="pas" && (
                                   <div style={{ background:GL, borderRadius:8, padding:12, fontSize:13, display:"flex", alignItems:"center", gap:10 }}>
                                     <span>✅</span>
-                                    <span style={{ color:"#16a34a" }}><strong>4,200</strong> email addresses will be pulled from PAS at dispatch time</span>
+                                    <span style={{ color:"#16a34a" }}>Email address will be pulled from PAS at dispatch time</span>
                                   </div>
                                 )}
                               </div>
@@ -1502,7 +1487,7 @@ ${rawBody}`
                                     ["Reply-to",emailConfig.replyTo],
                                     ["Subject", emailConfig.subject],
                                     ["Format",  emailConfig.format==="attachment"?"PDF Attachment":emailConfig.format==="inline"?"Inline HTML":"Secure Link"],
-                                    ["To (live)","4,200 PAS recipients"],
+                                    ["To (live)", selectedParty ? `${selectedParty.name} (${selectedParty.role})` : selectedRecord ? selectedRecord.name : "—"],
                                   ].map(([k,v])=>(
                                     <div key={k} style={{ display:"flex", gap:10, padding:"5px 0", borderBottom:`1px solid ${BD}`, fontSize:12 }}>
                                       <span style={{ color:TM, width:64, flexShrink:0 }}>{k}</span>
