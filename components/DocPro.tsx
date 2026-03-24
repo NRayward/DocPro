@@ -1590,18 +1590,18 @@ ${rawBody}`
                       {/* Summary card */}
                       <div style={{ background:GL, borderRadius:8, padding:16, marginBottom:14, borderLeft:`4px solid ${GR}` }}>
                         <div style={{ fontWeight:700, color:"#16a34a", marginBottom:6, fontSize:14 }}>Ready to dispatch</div>
-                        <div style={{ fontSize:13, color:TS }}>4,200 documents · Policy Renewal Notice v3.2</div>
+                        <div style={{ fontSize:13, color:TS }}>1 document · {selectedParty?.name || selectedRecord?.name || "Recipient"}</div>
                       </div>
 
                       <div style={{ background:"#fff", border:`1px solid ${BD}`, borderRadius:8, overflow:"hidden", marginBottom:14 }}>
                         {[
                           ["Associated",  selectedRecord ? `${selectedRecord.name} · ${selectedRecord.ref}` : "No record associated"],
                           ...(selectedParty ? [["Party", `${selectedParty.name} · ${selectedParty.role}`]] : []),
-                          ["Template",  "Policy Renewal Notice v3.2"],
-                          ["Recipients","4,200 · PAS extract"],
-                          ["Channels",  distChannels.length ? distChannels.map(c=>c.charAt(0).toUpperCase()+c.slice(1)).join(", ") : "—"],
+                          ["Template",  selTpl?.name || "Ad-hoc letter"],
+                          ["Recipients", selectedParty ? `${selectedParty.name} (${selectedParty.role})` : selectedRecord ? selectedRecord.name : "—"],
+                          ["Channels",  distChannels.length ? distChannels.map((c:string)=>c.charAt(0).toUpperCase()+c.slice(1)).join(", ") : "—"],
                           ["Schedule",  distSchedule==="immediate"?"Send immediately":distSchedule==="scheduled"?"Scheduled":"Pending approval"],
-                          ["Prepared by","", userEmail + " · Doc Administrator"],
+                          ["Prepared by", userEmail],
                         ].map(([k,v],i,arr)=>(
                           <div key={k} style={{ display:"flex", justifyContent:"space-between", padding:"10px 14px", borderBottom:i<arr.length-1?`1px solid ${BD}`:"none", fontSize:13 }}>
                             <span style={{ color:TM, fontWeight:500 }}>{k}</span>
