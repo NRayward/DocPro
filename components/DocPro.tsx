@@ -694,15 +694,21 @@ const [templatesLoading, setTemplatesLoading] = useState(false);
 
                       {/* Search type tabs */}
                       <div style={{ display:"flex", gap:0, marginBottom:14, border:`1px solid ${BD}`, borderRadius:8, overflow:"hidden" }}>
-                        {[["policy","📋 Policy"],["customer","👤 Customer"],["claim","🗂 Claim"]].map(([t,l],i,arr)=>(
+                        {([
+                          ["policy",   "Policy",   <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>],
+                          ["customer", "Customer", <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>],
+                          ["claim",    "Claim",    <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>],
+                        ] as [string, string, React.ReactElement][]).map(([t,l,icon],i,arr)=>(
                           <button key={t} onClick={()=>{setSearchType(t);setSearchQuery("");setSelectedRecord(null);}}
-                            style={{ flex:1, padding:"9px 0", border:"none", borderRight:i<arr.length-1?`1px solid ${BD}`:"none", cursor:"pointer", fontFamily:F, fontSize:12, fontWeight:600, background:searchType===t?AC:"#fff", color:searchType===t?"#fff":TS, transition:"all 0.15s" }}>{l}</button>
+                            style={{ flex:1, padding:"9px 0", border:"none", borderRight:i<arr.length-1?`1px solid ${BD}`:"none", cursor:"pointer", fontFamily:F, fontSize:12, fontWeight:600, background:searchType===t?AC:"#fff", color:searchType===t?"#fff":TS, transition:"all 0.15s", display:"flex", alignItems:"center", justifyContent:"center", gap:6 }}>
+                            {icon}{l}
+                          </button>
                         ))}
                       </div>
 
                       {/* Search input */}
                       <div style={{ position:"relative", marginBottom:12 }}>
-                        <span style={{ position:"absolute", left:12, top:"50%", transform:"translateY(-50%)", fontSize:14, color:TM }}>🔍</span>
+                        <span style={{ position:"absolute", left:12, top:"50%", transform:"translateY(-50%)", color:TM, display:"flex", alignItems:"center" }}><svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
                         <input
                           type="text"
                           placeholder={searchType==="policy"?"Search by policy number, vehicle reg or product…":searchType==="customer"?"Search by name, email or postcode…":"Search by claim reference, date or status…"}
