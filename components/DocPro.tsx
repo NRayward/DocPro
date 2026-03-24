@@ -234,6 +234,7 @@ fetch("/api/users")
 const [dbTemplates, setDbTemplates] = useState<any[]>([]);
 const [docHistory, setDocHistory] = useState<any[]>([]);
 const [historyFilter, setHistoryFilter] = useState("");
+const [historyLocked, setHistoryLocked] = useState(false);
 const [realUsers, setRealUsers] = useState<any[]>([]);
 const [templatesLoading, setTemplatesLoading] = useState(false);
   const [tCat, setTCat] = useState("All");
@@ -258,6 +259,15 @@ const [templatesLoading, setTemplatesLoading] = useState(false);
   useEffect(() => {
     if (typeof window === "undefined") return;
     const params = new URLSearchParams(window.location.search);
+
+    // Handle ?history_policy=XXX — locked document history view from PAS deep link
+    const historyPolicy = params.get("history_policy");
+    if (historyPolicy) {
+      setNav("storage");
+      setHistoryFilter(historyPolicy);
+      setHistoryLocked(true);
+      return;
+    }
 
     // Handle ?claim=CLM-XXXXX — auto-select claim and jump to step 2
     const claimRef = params.get("claim");
@@ -1883,11 +1893,17 @@ ${rawBody}`
           type="text"
           placeholder="Filter by policy number, claim number, name or reg…"
           value={historyFilter}
-          onChange={e => setHistoryFilter(e.target.value)}
-          style={{ ...iS, paddingLeft:34 }}
+          onChange={e => { if (!historyLocked) setHistoryFilter(e.target.value); }}
+          disabled={historyLocked}
+          style={{ ...iS, paddingLeft:34, background:historyLocked?"#f0f2f5":"#fff", cursor:historyLocked?"not-allowed":"text" }}
         />
       </div>
-      {historyFilter && (
+      {historyLocked && (
+        <span style={{ fontSize:11, color:"#6b7280", background:"#f0f2f5", border:`1px solid ${BD}`, borderRadius:6, padding:"6px 10px", whiteSpace:"nowrap", flexShrink:0, display:"flex", alignItems:"center", gap:5 }}>
+          🔒 Locked to <strong style={{ color:TP }}>{historyFilter}</strong>
+        </span>
+      )}
+      {historyFilter && !historyLocked && (
         <button onClick={() => setHistoryFilter("")} style={{ ...bS, padding:"8px 14px", fontSize:12, flexShrink:0 }}>Clear</button>
       )}
       <div style={{ fontSize:12, color:TM, whiteSpace:"nowrap", flexShrink:0 }}>
