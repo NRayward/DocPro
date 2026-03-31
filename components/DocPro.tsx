@@ -1655,7 +1655,13 @@ ${rawBody}`
                       <div style={{ display:"flex", gap:10 }}>
                         <button onClick={async ()=>{
   // 1. Save to documents log
-  try { await fetch("/api/documents",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({associated_type:searchType,associated_ref:selectedRecord?.ref||null,associated_name:selectedRecord?.name||null,party_name:selectedParty?.name||null,party_role:selectedParty?.role||null,letter_body:aiDraft,compose_mode:composeMode,language:transLang||"en",status:"dispatched",vehicle_reg:mergeData["{{VEHICLE_REG}}"]||null})}); } catch(e) {}
+  let savedDoc: any = null;
+  try {
+    const docRes = await fetch("/api/documents",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({associated_type:searchType,associated_ref:selectedRecord?.ref||null,associated_name:selectedRecord?.name||null,party_name:selectedParty?.name||null,party_role:selectedParty?.role||null,letter_body:aiDraft,compose_mode:composeMode,language:transLang||"en",status:"dispatched",vehicle_reg:mergeData["{{VEHICLE_REG}}"]||null})});
+    savedDoc = await docRes.json();
+    // Refresh the archive so the new document appears immediately
+    fetch("/api/documents").then(r=>r.json()).then(data=>setDocHistory(Array.isArray(data)?data:[])).catch(()=>{});
+  } catch(e) {}
 
   // 2. If claim — also save to claim correspondence so it appears in Claims app
   if(searchType==="claim" && selectedRecord?.ref) {
@@ -1673,10 +1679,17 @@ ${rawBody}`
     } catch(e) {}
   }
 
-  // 3. WhatsApp dispatch
+  // 3. WhatsApp dispatch — send directly without PDF dependency
   if(distChannels.includes("wa")){
     const phoneNum = (waPhone||selectedParty?.phone||"+447825806679").replace(/\s/g,"");
-    fetch("/api/generate-pdf",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({letterBody:aiDraft||TEMPLATE_BODY,documentId:Date.now()})}).then(r=>r.json()).then(pdf=>{ fetch("/api/whatsapp",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({to:phoneNum,message:"Please find your document from RDT Limited attached.",mediaUrl:pdf.url})}).then(r=>r.json()).then(d=>console.log("WA:",d)).catch(e=>console.error("WA:",e)); }).catch(e=>console.error("PDF:",e));
+    try {
+      const waRes = await fetch("/api/whatsapp",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({to:phoneNum,message:"Please find your document from RDT Limited attached.\n\n"+(aiDraft||TEMPLATE_BODY).slice(0,1000)})});
+      const waData = await waRes.json();
+      if(!waRes.ok) throw new Error(waData.error||"WhatsApp send failed");
+      notify("WhatsApp message sent to "+phoneNum);
+    } catch(e:any) {
+      notify("WhatsApp failed: "+e.message,"error");
+    }
   }
 
   // 4. Local Print — open branded print window with full letterhead
