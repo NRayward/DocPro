@@ -1677,14 +1677,18 @@ ${rawBody}`
 
   // 3. WhatsApp dispatch
   if(distChannels.includes("wa")){
-    const phoneNum = (waPhone||selectedParty?.phone||"+447825806679").replace(/\s/g,"");
-    try {
-      const waRes = await fetch("/api/whatsapp",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({to:phoneNum,message:"Please find your document from RDT Limited attached.\n\n"+(aiDraft||TEMPLATE_BODY).slice(0,1000)})});
-      const waData = await waRes.json();
-      if(!waRes.ok) throw new Error(waData.error||"Unknown error");
-      results.push("✓ WhatsApp sent to "+phoneNum);
-    } catch(e:any){
-      results.push("✗ WhatsApp failed: "+e.message);
+    const phoneNum = (waPhone||selectedParty?.phone||"").replace(/\s/g,"");
+    if(!phoneNum){
+      results.push("✗ WhatsApp skipped: no phone number entered");
+    } else {
+      try {
+        const waRes = await fetch("/api/whatsapp",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({to:phoneNum,message:"Please find your document from RDT Limited attached.\n\n"+(aiDraft||TEMPLATE_BODY).slice(0,1000)})});
+        const waData = await waRes.json();
+        if(!waRes.ok) throw new Error(waData.error||"Unknown error");
+        results.push("✓ WhatsApp sent to "+phoneNum);
+      } catch(e:any){
+        results.push("✗ WhatsApp failed: "+e.message);
+      }
     }
   }
 
