@@ -1682,7 +1682,15 @@ ${rawBody}`
       results.push("✗ WhatsApp skipped: no phone number entered");
     } else {
       try {
-        const waRes = await fetch("/api/whatsapp",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({to:phoneNum,message:"Please find your document from RDT Limited attached.\n\n"+(aiDraft||TEMPLATE_BODY).slice(0,1000)})});
+        // Apply merge fields to letter body before generating PDF
+        let mergedBody = aiDraft||TEMPLATE_BODY;
+        Object.entries(mergeData).forEach(([k,v])=>{ mergedBody = mergedBody.split(k).join(v as string); });
+
+        const pdfRes = await fetch("/api/generate-pdf",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({letterBody:mergedBody,documentId:Date.now(),mergeData})});
+        const pdfData = await pdfRes.json();
+        if(!pdfRes.ok||!pdfData.url) throw new Error(pdfData.error||"PDF generation failed");
+
+        const waRes = await fetch("/api/whatsapp",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({to:phoneNum,message:"Please find your document from RDT Limited attached.",mediaUrl:pdfData.url})});
         const waData = await waRes.json();
         if(!waRes.ok) throw new Error(waData.error||"Unknown error");
         results.push("✓ WhatsApp sent to "+phoneNum);

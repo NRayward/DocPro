@@ -8,7 +8,15 @@ const supabase = createClient(
 )
 
 export async function POST(req: Request) {
-  const { letterBody, documentId } = await req.json()
+  const { letterBody, documentId, mergeData } = await req.json()
+
+  // Apply merge fields to letter body
+  let mergedBody = letterBody || ""
+  if (mergeData && typeof mergeData === "object") {
+    Object.entries(mergeData).forEach(([k, v]: [string, any]) => {
+      mergedBody = mergedBody.split(k).join(String(v ?? ""))
+    })
+  }
 
   const html = `
     <!DOCTYPE html>
@@ -37,11 +45,11 @@ export async function POST(req: Request) {
       </div>
       <div class="content">
         <div class="address">
-          {{CUSTOMER_NAME}}<br/>
-          {{ADDRESS_LINE_1}}<br/>
-          {{POSTCODE}}
+          ${mergeData?.["{{CUSTOMER_NAME}}"] || ""}<br/>
+          ${mergeData?.["{{ADDRESS_LINE1}}"] || ""}<br/>
+          ${mergeData?.["{{POSTCODE}}"] || ""}
         </div>
-        <div class="body">${(letterBody || "").replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>
+        <div class="body">${( mergedBody).replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>
       </div>
       <div class="footer">
         <div class="footer-left">RDT Limited &middot; Registered in England &amp; Wales No. 12345678</div>
