@@ -1429,21 +1429,28 @@ ${rawBody}`
 
                       {/* Channel cards */}
                       <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginBottom:20 }}>
-                        {[
-                          { id:"print",  icon:"🖨️", label:"Central Print",    desc:"Mailing house dispatch" },
-                          { id:"localprint", icon:"🖨️", label:"Local Print",    desc:"Print from this browser" },
-                          { id:"email",  icon:"✉️", label:"Email",            desc:"PDF attachment or inline" },
-                          { id:"portal", icon:"🌐", label:"Customer Portal",  desc:"Self-service inbox" },
-                          { id:"sms",    icon:"💬", label:"SMS Notification", desc:"Link to online version" },
-                          { id:"wa",     icon:"__WA__", label:"WhatsApp",         desc:"WhatsApp Business API" },
-                          { id:"archive",icon:"🗄️", label:"Archive Only",     desc:"Store without sending" },
-                        ].map(ch => {
+                        {([
+                          { id:"print",      label:"Central Print",    desc:"Mailing house dispatch",
+                            icon:<svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg> },
+                          { id:"localprint", label:"Local Print",      desc:"Print from this browser",
+                            icon:<svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/><circle cx="18" cy="11.5" r="1"/></svg> },
+                          { id:"email",      label:"Email",            desc:"PDF attachment or inline",
+                            icon:<svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg> },
+                          { id:"portal",     label:"Customer Portal",  desc:"Self-service inbox",
+                            icon:<svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg> },
+                          { id:"sms",        label:"SMS Notification", desc:"Link to online version",
+                            icon:<svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> },
+                          { id:"wa",         label:"WhatsApp",         desc:"WhatsApp Business API",
+                            icon:<img src={WA_LOGO} alt="WhatsApp" style={{ width:20, height:20, objectFit:"contain", display:"inline-block" }} /> },
+                          { id:"archive",    label:"Archive Only",     desc:"Store without sending",
+                            icon:<svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="5" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"/><path d="M10 12h4"/></svg> },
+                        ] as {id:string,label:string,desc:string,icon:React.ReactElement}[]).map(ch => {
                           const sel = distChannels.includes(ch.id);
                           return (
                             <div key={ch.id} onClick={()=>setDistChannels(p=>p.includes(ch.id)?p.filter(c=>c!==ch.id):[...p,ch.id])}
                               style={{ padding:"12px 14px", borderRadius:8, cursor:"pointer", border:`1.5px solid ${sel?AC:BD}`, background:sel?ACL:"#fff", transition:"all 0.15s" }}>
                               <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}>
-                                <Icon v={ch.icon} size={20} />
+                                <span style={{ color:sel?AC:"#6b7280", display:"inline-flex" }}>{ch.icon}</span>
                                 {sel && <span style={{ fontSize:11, color:AC, fontWeight:700 }}>✓</span>}
                               </div>
                               <div style={{ fontWeight:600, fontSize:13, marginTop:6, color:sel?AC:TP }}>{ch.label}</div>
@@ -1458,7 +1465,7 @@ ${rawBody}`
                         <div style={{ border:`1.5px solid ${AC}`, borderRadius:10, overflow:"hidden", marginBottom:16, background:"#fff" }}>
                           {/* Panel header */}
                           <div style={{ background:ACL, padding:"12px 16px", borderBottom:`1px solid ${AC}30`, display:"flex", alignItems:"center", gap:10 }}>
-                            <span style={{ fontSize:18 }}>✉️</span>
+                            <span style={{ color:AC, display:"inline-flex" }}><svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg></span>
                             <div style={{ flex:1 }}>
                               <div style={{ fontSize:13, fontWeight:700, color:AC }}>Email Configuration</div>
                               <div style={{ fontSize:11, color:TS }}>Configure email addresses and delivery settings</div>
@@ -1672,7 +1679,7 @@ ${rawBody}`
                       {distChannels.includes("localprint") && (
                         <div style={{ border:`1.5px solid ${AC}`, borderRadius:10, overflow:"hidden", marginBottom:16, background:"#fff" }}>
                           <div style={{ background:ACL, padding:"12px 16px", borderBottom:`1px solid ${AC}30`, display:"flex", alignItems:"center", gap:10 }}>
-                            <span style={{ fontSize:18 }}>🖨️</span>
+                            <span style={{ color:AC, display:"inline-flex" }}><svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg></span>
                             <div style={{ flex:1 }}>
                               <div style={{ fontSize:13, fontWeight:700, color:AC }}>Local Print</div>
                               <div style={{ fontSize:11, color:TS }}>Print directly from your browser — full branded letterhead included</div>
