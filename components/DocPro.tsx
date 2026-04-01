@@ -305,8 +305,8 @@ const [templatesLoading, setTemplatesLoading] = useState(false);
               : { id: "p1", role: "Policyholder", name: rec.name, contact: "", phone: "", address: "" };
             setSelectedParty(policyholder);
             setClaimPartyStep(true);
-            // Jump straight to step 2 — template selection
-            setComposeStep(2);
+            // Jump straight to step 3 — template selection
+            setComposeStep(3);
           }
         }).catch(() => {});
       return;
@@ -774,13 +774,13 @@ const [templatesLoading, setTemplatesLoading] = useState(false);
             <div>
               <PH title="Document Composer" sub="Create, customise and prepare documents for dispatch" />
               <div style={{ display:"flex", gap:6, marginBottom:20 }}>
-                {["1 Search","2 Template","3 Content","4 Distribution","5 Review"].map((s,i) => (
+                {["1 Search","2 Recipient","3 Template","4 Content","5 Distribution","6 Review"].map((s,i) => (
                   <div key={i} style={{ flex:1, padding:"10px 14px", borderRadius:8, background:composeStep===i+1?AC:composeStep>i+1?GL:PG, color:composeStep===i+1?"#fff":composeStep>i+1?GR:TM, fontSize:12, fontWeight:600, textAlign:"center", cursor:"pointer" }} onClick={()=>setComposeStep(i+1)}>{s}</div>
                 ))}
               </div>
               <div style={{ display:"grid", gridTemplateColumns:"1fr 280px", gap:16 }}>
                 <Cd style={{ padding:20 }}>
-                  <SL>Step {composeStep} of 5</SL>
+                  <SL>Step {composeStep} of 6</SL>
                   {/* ── STEP 1: Search ── */}
                   {composeStep===1 && (
                     <div>
@@ -843,78 +843,8 @@ const [templatesLoading, setTemplatesLoading] = useState(false);
                         );
                       })()}
 
-                      {/* Selected record — claim party selection sub-step */}
-                      {selectedRecord && selectedRecord.type==="claim" && !claimPartyStep && (
-                        <div>
-                          <div style={{ background:GL, border:`1px solid ${GR}40`, borderRadius:8, padding:"12px 16px", marginBottom:14, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
-                            <div>
-                              <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:3 }}>
-                                <span style={{ fontSize:13, fontWeight:700, color:"#16a34a" }}>✓ Claim selected</span>
-                                <span style={{ fontFamily:"monospace", fontSize:11, color:AC, background:ACL, padding:"1px 6px", borderRadius:3 }}>{selectedRecord.ref}</span>
-                              </div>
-                              <div style={{ fontSize:13, fontWeight:600, color:TP }}>{selectedRecord.name}</div>
-                              <div style={{ fontSize:12, color:TM, marginTop:2 }}>{selectedRecord.detail}</div>
-                            </div>
-                            <button onClick={()=>{setSelectedRecord(null);setSelectedParty(null);}} style={{ ...bS, fontSize:11, padding:"4px 10px", flexShrink:0 }}>Change</button>
-                          </div>
-                          <button onClick={()=>setClaimPartyStep(true)} style={{ ...bP, width:"100%" }}>
-                            Select Involved Party &#8594;
-                          </button>
-                        </div>
-                      )}
-
-                      {/* Claim party selection sub-step */}
-                      {selectedRecord && selectedRecord.type==="claim" && claimPartyStep && (
-                        <div>
-                          {/* Claim summary banner */}
-                          <div style={{ background:ACL, border:`1px solid ${AC}30`, borderRadius:8, padding:"10px 14px", marginBottom:16, display:"flex", alignItems:"center", gap:10 }}>
-                            <span style={{ fontSize:16 }}>🗂</span>
-                            <div style={{ flex:1 }}>
-                              <div style={{ fontSize:12, fontWeight:700, color:AC }}>{selectedRecord.ref}</div>
-                              <div style={{ fontSize:12, color:TS }}>{selectedRecord.detail}</div>
-                            </div>
-                            <button onClick={()=>{setClaimPartyStep(false);setSelectedParty(null);}} style={{ ...bS, fontSize:11, padding:"4px 10px", flexShrink:0 }}>Back</button>
-                          </div>
-
-                          <div style={{ fontSize:14, fontWeight:600, marginBottom:4 }}>Who is this letter addressed to?</div>
-                          <div style={{ fontSize:12, color:TM, marginBottom:14 }}>Select the involved party on this claim</div>
-
-                          {/* Party cards */}
-                          <div style={{ display:"flex", flexDirection:"column", gap:8, marginBottom:16 }}>
-                            {(CLAIM_PARTIES[selectedRecord.ref]||[]).map(party=>{
-                              const sel = selectedParty && selectedParty.id===party.id;
-                              return (
-                                <div key={party.id} onClick={()=>setSelectedParty(party)}
-                                  style={{ padding:"12px 14px", borderRadius:8, cursor:"pointer", border:`1.5px solid ${sel?AC:BD}`, background:sel?ACL:"#fff", transition:"all 0.15s" }}>
-                                  <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}>
-                                    <div style={{ flex:1 }}>
-                                      <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:4 }}>
-                                        <span style={{ fontSize:11, fontWeight:700, color:sel?AC:"#fff", background:sel?ACL:AC, padding:"2px 8px", borderRadius:20, border:`1px solid ${AC}` }}>{party.role}</span>
-                                      </div>
-                                      <div style={{ fontSize:13, fontWeight:600, color:sel?AC:TP, marginBottom:2 }}>{party.name}</div>
-                                      <div style={{ fontSize:11, color:TM }}>{party.contact}</div>
-                                      <div style={{ fontSize:11, color:TM }}>{party.address}</div>
-                                    </div>
-                                    <div style={{ width:20, height:20, borderRadius:"50%", border:`2px solid ${sel?AC:BD}`, background:sel?AC:"#fff", flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center", marginLeft:10 }}>
-                                      {sel && <div style={{ width:8, height:8, borderRadius:"50%", background:"#fff" }}/>}
-                                    </div>
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </div>
-
-                          {/* Confirm party */}
-                          <button
-                            onClick={()=>{ if(!selectedParty){notify("Please select an involved party","error");return;} setComposeStep(2); }}
-                            style={{ ...bP, width:"100%", opacity:selectedParty?1:0.5 }}>
-                            Continue to Template Selection &#8594;
-                          </button>
-                        </div>
-                      )}
-
-                      {/* Selected record confirmation — non-claim records */}
-                      {selectedRecord && selectedRecord.type!=="claim" && (
+                      {/* Selected record confirmation — all record types */}
+                      {selectedRecord && (
                         <div>
                           <div style={{ background:GL, border:`1px solid ${GR}40`, borderRadius:8, padding:"12px 16px", marginBottom:14, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
                             <div>
@@ -928,7 +858,7 @@ const [templatesLoading, setTemplatesLoading] = useState(false);
                             <button onClick={()=>setSelectedRecord(null)} style={{ ...bS, fontSize:11, padding:"4px 10px", flexShrink:0 }}>Change</button>
                           </div>
                           <button onClick={()=>setComposeStep(2)} style={{ ...bP, width:"100%" }}>
-                            Continue to Template Selection &#8594;
+                            Continue — Select Recipient &#8594;
                           </button>
                         </div>
                       )}
@@ -936,7 +866,7 @@ const [templatesLoading, setTemplatesLoading] = useState(false);
                       {/* Skip option */}
                       {!selectedRecord && (
                         <div style={{ marginTop:16, textAlign:"center" }}>
-                          <button onClick={()=>setComposeStep(2)} style={{ background:"none", border:"none", color:TM, fontSize:12, cursor:"pointer", fontFamily:F, textDecoration:"underline" }}>
+                          <button onClick={()=>setComposeStep(3)} style={{ background:"none", border:"none", color:TM, fontSize:12, cursor:"pointer", fontFamily:F, textDecoration:"underline" }}>
                             Skip — compose without associating a record
                           </button>
                         </div>
@@ -944,8 +874,95 @@ const [templatesLoading, setTemplatesLoading] = useState(false);
                     </div>
                   )}
 
-                  {/* ── STEP 2: Template / Mode selection ── */}
+                  {/* ── STEP 2: Recipient selection ── */}
                   {composeStep===2 && (
+                    <div>
+                      <div style={{ fontSize:14, fontWeight:600, marginBottom:4 }}>Who is this letter addressed to?</div>
+                      <div style={{ fontSize:12, color:TM, marginBottom:16 }}>Select the recipient for this letter</div>
+
+                      {/* Build recipient list from selected record */}
+                      {(()=>{
+                        // Build recipients based on record type
+                        let recipients: any[] = [];
+                        if (selectedRecord?.type === "claim") {
+                          recipients = (CLAIM_PARTIES as any)[selectedRecord.ref] || [
+                            { id:"p1", role:"Policyholder", name:selectedRecord.name, contact:"", phone:"", address:"" }
+                          ];
+                        } else if (selectedRecord?.type === "policy" || selectedRecord?.type === "customer") {
+                          recipients = [
+                            { id:"policyholder", role:"Policyholder", name:selectedRecord.name, contact:mergeData["{{CUSTOMER_EMAIL}}"]||"", phone:mergeData["{{CUSTOMER_PHONE}}"]||"", address:[mergeData["{{ADDRESS_LINE1}}"], mergeData["{{POSTCODE}}"]].filter(Boolean).join(", ")||"" },
+                          ];
+                          if (mergeData["{{BROKER_NAME}}"]) {
+                            recipients.push({ id:"broker", role:"Broker", name:mergeData["{{BROKER_NAME}}"]||"", contact:mergeData["{{BROKER_EMAIL}}"]||"", phone:mergeData["{{BROKER_PHONE}}"]||"", address:"" });
+                          }
+                        } else {
+                          // No record selected — show a manual entry option
+                          recipients = [];
+                        }
+
+                        return (
+                          <div>
+                            {recipients.length > 0 && (
+                              <div style={{ display:"flex", flexDirection:"column", gap:8, marginBottom:16 }}>
+                                {recipients.map((party:any) => {
+                                  const sel = selectedParty?.id === party.id;
+                                  return (
+                                    <div key={party.id} onClick={()=>setSelectedParty(party)}
+                                      style={{ padding:"12px 14px", borderRadius:8, cursor:"pointer", border:`1.5px solid ${sel?AC:BD}`, background:sel?ACL:"#fff", transition:"all 0.15s" }}>
+                                      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}>
+                                        <div style={{ flex:1 }}>
+                                          <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:4 }}>
+                                            <span style={{ fontSize:11, fontWeight:700, color:sel?"#fff":AC, background:sel?AC:ACL, padding:"2px 8px", borderRadius:20, border:`1px solid ${AC}` }}>{party.role}</span>
+                                          </div>
+                                          <div style={{ fontSize:13, fontWeight:600, color:sel?AC:TP, marginBottom:2 }}>{party.name}</div>
+                                          {party.contact && <div style={{ fontSize:11, color:TM }}>{party.contact}</div>}
+                                          {party.phone  && <div style={{ fontSize:11, color:TM }}>{party.phone}</div>}
+                                          {party.address && <div style={{ fontSize:11, color:TM }}>{party.address}</div>}
+                                        </div>
+                                        <div style={{ width:20, height:20, borderRadius:"50%", border:`2px solid ${sel?AC:BD}`, background:sel?AC:"#fff", flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center", marginLeft:10 }}>
+                                          {sel && <div style={{ width:8, height:8, borderRadius:"50%", background:"#fff" }}/>}
+                                        </div>
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            )}
+
+                            {/* Manual recipient entry when no record or to override */}
+                            <div style={{ background:PG, borderRadius:8, padding:14, marginBottom:16 }}>
+                              <div style={{ fontSize:12, fontWeight:600, color:TS, marginBottom:10 }}>
+                                {recipients.length > 0 ? "Or enter a different recipient manually:" : "Enter recipient details:"}
+                              </div>
+                              <div style={{ display:"grid", gap:8 }}>
+                                <input placeholder="Full name" style={iS}
+                                  value={selectedParty?.id==="manual" ? selectedParty.name : ""}
+                                  onChange={e=>setSelectedParty({ id:"manual", role:"Other", name:e.target.value, contact:"", phone:"", address:selectedParty?.id==="manual"?selectedParty.address:"" })} />
+                                <input placeholder="Address (optional)" style={iS}
+                                  value={selectedParty?.id==="manual" ? selectedParty.address||"" : ""}
+                                  onChange={e=>setSelectedParty({ ...(selectedParty||{}), id:"manual", role:"Other", address:e.target.value })} />
+                                <input placeholder="Email or phone (optional)" style={iS}
+                                  value={selectedParty?.id==="manual" ? selectedParty.contact||"" : ""}
+                                  onChange={e=>setSelectedParty({ ...(selectedParty||{}), id:"manual", role:"Other", contact:e.target.value })} />
+                              </div>
+                            </div>
+
+                            <div style={{ display:"flex", gap:10 }}>
+                              <button onClick={()=>setComposeStep(1)} style={bS}>← Back</button>
+                              <button
+                                onClick={()=>{ if(!selectedParty||!selectedParty.name){notify("Please select or enter a recipient","error");return;} setComposeStep(3); }}
+                                style={{ ...bP, flex:1, opacity:selectedParty?.name?1:0.5 }}>
+                                Continue to Template &#8594;
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })()}
+                    </div>
+                  )}
+
+                  {/* ── STEP 3: Template / Mode selection ── */}
+                  {composeStep===3 && (
                     <div>
                       <div style={{ display:"flex", gap:8, marginBottom:20, padding:4, background:PG, borderRadius:10 }}>
                         {[["template","📄 Template"],["adhoc","✨ AI Draft"],["blank","✏️ Write My Own"]].map(([m,l])=>(
@@ -1011,7 +1028,7 @@ const [templatesLoading, setTemplatesLoading] = useState(false);
                                 : t.name;
                               return (
                                 <div key={t.id}
-                                  onClick={()=>{setAiDraft("");setComposeStep(3);}}
+                                  onClick={()=>{setAiDraft("");setComposeStep(4);}}
                                   style={{ padding:"11px 14px", borderRadius:8, border:`1px solid ${BD}`, marginBottom:8, cursor:"pointer", display:"flex", justifyContent:"space-between", alignItems:"center", background:"#fff", transition:"border-color 0.12s" }}>
                                   <div style={{ flex:1, minWidth:0 }}>
                                     <div style={{ display:"flex", alignItems:"center", gap:7, marginBottom:3 }}>
@@ -1144,7 +1161,7 @@ Rules:
                                 onChange={e=>setAiDraft(e.target.value)}
                                 style={{ ...iS, height:200, resize:"vertical", fontSize:12, lineHeight:1.7, fontFamily:"Georgia, serif" }}
                               />
-                              <button onClick={()=>setComposeStep(3)} style={{ ...bP, width:"100%", marginTop:10 }}>
+                              <button onClick={()=>setComposeStep(4)} style={{ ...bP, width:"100%", marginTop:10 }}>
                                 Use This Draft — Continue to Review
                               </button>
                             </div>
@@ -1192,7 +1209,7 @@ Rules:
                           </div>
 
                           <button
-                            onClick={()=>{ if(!aiDraft.trim()){notify("Please write your letter content first","error");return;} setComposeStep(3); }}
+                            onClick={()=>{ if(!aiDraft.trim()){notify("Please write your letter content first","error");return;} setComposeStep(4); }}
                             style={{ ...bP, width:"100%", opacity:aiDraft.trim()?1:0.5 }}
                           >
                             Preview on Letterhead — Continue
@@ -1201,7 +1218,7 @@ Rules:
                       )}
                     </div>
                   )}
-                  {composeStep===3 && (()=>{ const rawBody = aiDraft || TEMPLATE_BODY;
+                  {composeStep===4 && (()=>{ const rawBody = aiDraft || TEMPLATE_BODY;
           const letterBody = Object.entries(mergeData).reduce((body, [key, val]) => body.split(key).join(val), rawBody); return (
                     <div>
                       {/* Toolbar */}
@@ -1400,12 +1417,12 @@ ${rawBody}`
                       </div>
 
                       <div style={{ display:"flex", gap:10, marginTop:12 }}>
-                        <button onClick={()=>setComposeStep(4)} style={{ ...bP, flex:1 }}>Save &amp; Continue</button>
+                        <button onClick={()=>setComposeStep(5)} style={{ ...bP, flex:1 }}>Save &amp; Continue</button>
                         <button onClick={()=>{ setComposeStep(1); setSelectedRecord(null); setSearchQuery(""); setAiDraft(""); setAiPrompt(""); setAiRecipient(""); setComposeMode("template"); setSelectedParty(null); setClaimPartyStep(false); setTransLang(""); setTransOpen(false); setCSearch(""); setCCat("All"); notify("Letter discarded","error"); }} style={{ ...bS, padding:"8px 18px", color:RD, border:`1px solid ${RD}`, background:"#fff" }}>🗑 Discard</button>
                       </div>
                     </div>
                   )})()}
-                  {composeStep===4 && (
+                  {composeStep===5 && (
                     <div>
                       <div style={{ fontSize:14, fontWeight:600, marginBottom:4 }}>Select distribution channels</div>
                       <div style={{ fontSize:12, color:TM, marginBottom:16 }}>Choose how this letter will be delivered to recipients</div>
@@ -1695,14 +1712,14 @@ ${rawBody}`
                       )}
 
                       <button
-                        onClick={()=>{ if(!distChannels.length){notify("Please select at least one channel","error");return;} setComposeStep(5); }}
+                        onClick={()=>{ if(!distChannels.length){notify("Please select at least one channel","error");return;} setComposeStep(6); }}
                         style={{ ...bP, width:"100%", opacity:distChannels.length?1:0.5 }}>
                         Confirm Distribution
                       </button>
                     </div>
                   )}
 
-                  {composeStep===5 && (
+                  {composeStep===6 && (
                     <div>
                       {/* Summary card */}
                       <div style={{ background:GL, borderRadius:8, padding:16, marginBottom:14, borderLeft:`4px solid ${GR}` }}>
@@ -1810,7 +1827,7 @@ ${rawBody}`
 }} style={{ ...bP, flex:1 }}>
                           Confirm &amp; Dispatch
                         </button>
-                        <button onClick={()=>setComposeStep(4)} style={bS}>Back</button>
+                        <button onClick={()=>setComposeStep(5)} style={bS}>Back</button>
                       </div>
                     </div>
                   )}
