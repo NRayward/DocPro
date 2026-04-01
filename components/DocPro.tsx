@@ -246,6 +246,9 @@ fetch("/api/users")
   const [selTpl, setSelTpl] = useState(null);
   const [tSearch, setTSearch] = useState("");
 const [dbTemplates, setDbTemplates] = useState<any[]>([]);
+const [tagEditTpl, setTagEditTpl] = useState<any>(null);
+const [tagEditValues, setTagEditValues] = useState<string[]>([]);
+const [tagSaving, setTagSaving] = useState(false);
 const [docHistory, setDocHistory] = useState<any[]>([]);
 const [historyFilter, setHistoryFilter] = useState("");
 const [historyLocked, setHistoryLocked] = useState(false);
@@ -688,6 +691,7 @@ const [templatesLoading, setTemplatesLoading] = useState(false);
                               <div style={{ display:"flex", gap:6 }}>
                                 <button onClick={e=>{e.stopPropagation();notify("Duplicated");}} style={{ ...bS, fontSize:11, padding:"5px 0", flex:1 }}>⊕ Duplicate</button>
                                 <button onClick={e=>{e.stopPropagation();notify("History opened");}} style={{ ...bS, fontSize:11, padding:"5px 0", flex:1 }}>⟳ History</button>
+                                <button onClick={e=>{e.stopPropagation();setTagEditTpl(t);setTagEditValues(t.tags||[t.cat]);}} style={{ ...bS, fontSize:11, padding:"5px 0", flex:1 }}>🏷 Tags</button>
                               </div>
                             </div>
                           )}
@@ -699,6 +703,71 @@ const [templatesLoading, setTemplatesLoading] = useState(false);
               </div>
             );
           })()}
+
+          {/* ── Tag Editor Modal ── */}
+          {tagEditTpl && (
+            <div style={{ position:"fixed", inset:0, zIndex:1000, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"center", justifyContent:"center" }}
+              onClick={()=>setTagEditTpl(null)}>
+              <div style={{ background:"#fff", borderRadius:14, width:460, boxShadow:"0 20px 60px rgba(0,0,0,0.2)", overflow:"hidden" }}
+                onClick={e=>e.stopPropagation()}>
+                <div style={{ padding:"20px 24px 16px", borderBottom:`1px solid ${BD}`, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+                  <div>
+                    <div style={{ fontSize:15, fontWeight:700, color:TP }}>Edit Tags</div>
+                    <div style={{ fontSize:12, color:TM, marginTop:2 }}>{tagEditTpl.name}</div>
+                  </div>
+                  <button onClick={()=>setTagEditTpl(null)} style={{ width:28, height:28, borderRadius:"50%", border:`1px solid ${BD}`, background:"#fff", cursor:"pointer", fontSize:16, color:TM, display:"flex", alignItems:"center", justifyContent:"center" }}>✕</button>
+                </div>
+                <div style={{ padding:"20px 24px" }}>
+                  <div style={{ fontSize:12, fontWeight:600, color:TS, marginBottom:12 }}>Select all tags that apply to this template:</div>
+                  <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8, marginBottom:20 }}>
+                    {["Quote","Policy","Renewal","Claim","Certificate","Endorsement","Cancellation","Finance"].map(tag => {
+                      const checked = tagEditValues.includes(tag);
+                      return (
+                        <div key={tag}
+                          onClick={()=>setTagEditValues(checked ? tagEditValues.filter((v:string)=>v!==tag) : [...tagEditValues, tag])}
+                          style={{ display:"flex", alignItems:"center", gap:10, padding:"10px 14px", borderRadius:8, cursor:"pointer", border:`1.5px solid ${checked?AC:BD}`, background:checked?ACL:"#fff", transition:"all 0.12s" }}>
+                          <div style={{ width:16, height:16, borderRadius:4, background:checked?AC:"#fff", border:`1.5px solid ${checked?AC:BD}`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, fontSize:10, color:"#fff" }}>
+                            {checked ? "✓" : ""}
+                          </div>
+                          <span style={{ fontSize:13, fontWeight:checked?600:400, color:checked?AC:TP }}>{tag}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  {tagEditValues.length === 0 && (
+                    <div style={{ fontSize:12, color:RD, marginBottom:12 }}>⚠ Please select at least one tag</div>
+                  )}
+                  <div style={{ display:"flex", gap:10 }}>
+                    <button
+                      style={{ ...bP, flex:1, opacity:tagEditValues.length?1:0.5 }}
+                      disabled={tagSaving || tagEditValues.length===0}
+                      onClick={async ()=>{
+                        setTagSaving(true);
+                        try {
+                          const res = await fetch("/api/templates", {
+                            method:"PATCH",
+                            headers:{"Content-Type":"application/json"},
+                            body:JSON.stringify({ id:tagEditTpl.id, tags:tagEditValues })
+                          });
+                          if (res.ok) {
+                            setDbTemplates((prev:any[]) => prev.map((t:any) => t.id===tagEditTpl.id ? {...t, tags:tagEditValues} : t));
+                            notify(`Tags updated for ${tagEditTpl.name}`);
+                            setTagEditTpl(null);
+                          } else {
+                            const err = await res.json();
+                            notify(err.error || "Save failed", "error");
+                          }
+                        } catch(e:any) { notify(e.message, "error"); }
+                        setTagSaving(false);
+                      }}>
+                      {tagSaving ? "Saving…" : "Save Tags"}
+                    </button>
+                    <button onClick={()=>setTagEditTpl(null)} style={bS}>Cancel</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* ═══ COMPOSE ═══ */}
           {nav==="compose" && (
