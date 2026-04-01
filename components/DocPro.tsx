@@ -152,6 +152,20 @@ const ICONS = {
   compose:       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>,
 };
 
+
+async function navigateSSO(targetOrigin: string, path: string = "/") {
+  try {
+    const res = await fetch("/api/sso/token", { method: "POST" });
+    if (res.ok) {
+      const { token } = await res.json();
+      window.location.href = `${targetOrigin}/api/sso/verify?sso_token=${token}&next=${encodeURIComponent(path)}`;
+      return;
+    }
+  } catch (_) {}
+  // Fallback — direct navigation
+  window.location.href = targetOrigin + path;
+}
+
 const WA_LOGO = "data:image/png;base64,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";
 
 const NAV_ITEMS = [
@@ -430,6 +444,33 @@ const [templatesLoading, setTemplatesLoading] = useState(false);
             </div>
           ))}
         </nav>
+        {/* Platform links */}
+        <div style={{ padding:"8px 6px 2px", borderTop:`1px solid rgba(255,255,255,0.08)` }}>
+          {sideOpen && <div style={{ fontSize:10, color:"rgba(255,255,255,0.35)", fontWeight:600, letterSpacing:"0.08em", textTransform:"uppercase", padding:"4px 10px 6px" }}>Platform</div>}
+          <button
+            onClick={()=>navigateSSO("https://pas-murex.vercel.app")}
+            title="Policy Administration System"
+            style={{ width:"100%", display:"flex", alignItems:"center", gap:8, padding:"8px 10px", borderRadius:7, border:"none", cursor:"pointer", background:"transparent", color:"rgba(255,255,255,0.5)", fontSize:13, fontFamily:F, fontWeight:400, marginBottom:1, textAlign:"left", transition:"background 0.15s" }}
+            onMouseEnter={e=>(e.currentTarget.style.background="rgba(255,255,255,0.08)")}
+            onMouseLeave={e=>(e.currentTarget.style.background="transparent")}>
+            <span style={{ width:18, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            </span>
+            {sideOpen && <><span style={{ flex:1 }}>PAS</span><span style={{ fontSize:10, opacity:0.4 }}>↗</span></>}
+          </button>
+          <button
+            onClick={()=>navigateSSO("https://claims-pied.vercel.app")}
+            title="Claims Management"
+            style={{ width:"100%", display:"flex", alignItems:"center", gap:8, padding:"8px 10px", borderRadius:7, border:"none", cursor:"pointer", background:"transparent", color:"rgba(255,255,255,0.5)", fontSize:13, fontFamily:F, fontWeight:400, marginBottom:1, textAlign:"left", transition:"background 0.15s" }}
+            onMouseEnter={e=>(e.currentTarget.style.background="rgba(255,255,255,0.08)")}
+            onMouseLeave={e=>(e.currentTarget.style.background="transparent")}>
+            <span style={{ width:18, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            </span>
+            {sideOpen && <><span style={{ flex:1 }}>Claims</span><span style={{ fontSize:10, opacity:0.4 }}>↗</span></>}
+          </button>
+        </div>
+
         <div style={{ padding:"10px 6px", borderTop:`1px solid ${BD}`, display:"flex", flexDirection:"column", gap:6 }}>
           <button onClick={()=>setSideOpen(p=>!p)} style={{ width:"100%", padding:"7px 10px", borderRadius:7, border:`1px solid ${BD}`, background:PG, cursor:"pointer", fontSize:12, color:TS, fontFamily:F, textAlign:"center" }}>
             {sideOpen ? "← Collapse" : "→"}
