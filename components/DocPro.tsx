@@ -50,12 +50,15 @@ const INIT_USERS = [
 ];
 
 const TEMPLATES = [
-  { id:1, name:"Policy Renewal Notice",  type:"Letter", cat:"Renewals",      status:"Active",   ver:"v3.2", mod:"2 hrs ago",   uses:1240 },
-  { id:2, name:"Claims Acknowledgement", type:"Email",  cat:"Claims",        status:"Active",   ver:"v1.8", mod:"1 day ago",   uses:890  },
-  { id:3, name:"NCD Certificate",        type:"PDF",    cat:"Certificates",  status:"Draft",    ver:"v2.0", mod:"3 days ago",  uses:0    },
-  { id:4, name:"Welcome Pack – Motor",   type:"Bundle", cat:"Onboarding",    status:"Active",   ver:"v4.1", mod:"1 week ago",  uses:4520 },
-  { id:5, name:"MTA Endorsement Letter", type:"Letter", cat:"Endorsements",  status:"Review",   ver:"v1.3", mod:"2 weeks ago", uses:340  },
-  { id:6, name:"Cancellation Notice",    type:"Letter", cat:"Cancellations", status:"Active",   ver:"v2.7", mod:"3 weeks ago", uses:215  },
+  { id:1, name:"Policy Renewal Notice",    type:"Letter", cat:"Renewal",      tags:["Renewal","Policy"],            status:"Active",   ver:"v3.2", mod:"2 hrs ago",   uses:1240 },
+  { id:2, name:"Claims Acknowledgement",   type:"Email",  cat:"Claim",        tags:["Claim"],                       status:"Active",   ver:"v1.8", mod:"1 day ago",   uses:890  },
+  { id:3, name:"NCD Certificate",          type:"PDF",    cat:"Certificate",  tags:["Certificate","Policy"],        status:"Draft",    ver:"v2.0", mod:"3 days ago",  uses:0    },
+  { id:4, name:"Welcome Pack – Motor",     type:"Bundle", cat:"Policy",       tags:["Policy","Quote"],              status:"Active",   ver:"v4.1", mod:"1 week ago",  uses:4520 },
+  { id:5, name:"MTA Endorsement Letter",   type:"Letter", cat:"Endorsement",  tags:["Endorsement","Policy"],        status:"Review",   ver:"v1.3", mod:"2 weeks ago", uses:340  },
+  { id:6, name:"Cancellation Notice",      type:"Letter", cat:"Cancellation", tags:["Cancellation","Policy"],       status:"Active",   ver:"v2.7", mod:"3 weeks ago", uses:215  },
+  { id:7, name:"Quote Summary",            type:"Letter", cat:"Quote",        tags:["Quote"],                       status:"Active",   ver:"v1.0", mod:"1 month ago",  uses:620  },
+  { id:8, name:"Finance Agreement",        type:"PDF",    cat:"Finance",      tags:["Finance","Policy"],            status:"Active",   ver:"v2.1", mod:"2 months ago", uses:480  },
+  { id:9, name:"Claims Settlement Letter", type:"Letter", cat:"Claim",        tags:["Claim","Finance"],             status:"Active",   ver:"v1.5", mod:"3 days ago",  uses:290  },
 ];
 
 const CHANNELS = [
@@ -215,7 +218,18 @@ useEffect(() => {
   setTemplatesLoading(true);
   fetch("/api/templates")
     .then(r => r.json())
-    .then(data => { setDbTemplates(data); setTemplatesLoading(false); })
+    .then(data => {
+      // Normalise DB shape → UI shape
+      const normalised = Array.isArray(data) ? data.map((t: any) => ({
+        ...t,
+        cat:  t.category || t.cat || "",
+        ver:  t.version  || t.ver  || "v1.0",
+        uses: t.uses     || 0,
+        tags: Array.isArray(t.tags) && t.tags.length ? t.tags : [t.category || t.cat || ""],
+      })) : [];
+      setDbTemplates(normalised);
+      setTemplatesLoading(false);
+    })
     .catch(() => setTemplatesLoading(false));
   fetch("/api/documents")
     .then(r => r.json())
@@ -580,14 +594,15 @@ const [templatesLoading, setTemplatesLoading] = useState(false);
 
           {/* ═══ TEMPLATES ═══ */}
           {nav==="templates" && (()=>{
-            const cats = ["All","Renewals","Claims","Certificates","Onboarding","Endorsements","Cancellations"];
+            const cats = ["All","Quote","Policy","Renewal","Claim","Certificate","Endorsement","Cancellation","Finance"];
             const filtered = (dbTemplates.length ? dbTemplates : TEMPLATES).filter(t=>{
               const matchSearch = !tSearch.trim() ||
                 t.name.toLowerCase().includes(tSearch.toLowerCase()) ||
                 t.type.toLowerCase().includes(tSearch.toLowerCase()) ||
-                t.cat.toLowerCase().includes(tSearch.toLowerCase()) ||
+                (t.cat||"").toLowerCase().includes(tSearch.toLowerCase()) ||
                 t.ver.toLowerCase().includes(tSearch.toLowerCase());
-              const matchCat = tCat==="All" || t.cat===tCat;
+              const tags: string[] = t.tags || [t.cat];
+              const matchCat = tCat==="All" || tags.includes(tCat);
               return matchSearch && matchCat;
             });
             return (
@@ -620,7 +635,7 @@ const [templatesLoading, setTemplatesLoading] = useState(false);
                       <button key={c} onClick={()=>setTCat(c)} style={{ padding:"4px 12px", borderRadius:20, fontSize:11, cursor:"pointer", fontFamily:F, fontWeight:tCat===c?700:400, background:tCat===c?AC:"#fff", color:tCat===c?"#fff":TS, border:`1px solid ${tCat===c?AC:BD}`, transition:"all 0.15s" }}>{c}</button>
                     ))}
                     <span style={{ marginLeft:"auto", fontSize:12, color:TM, fontWeight:500 }}>
-                      {filtered.length} of {TEMPLATES.length} templates
+                      {filtered.length} of {(dbTemplates.length ? dbTemplates : TEMPLATES).length} templates
                     </span>
                   </div>
                 </Cd>
@@ -871,11 +886,12 @@ const [templatesLoading, setTemplatesLoading] = useState(false);
 
                       {/* ── Template mode ── */}
                       {composeMode==="template" && (()=>{
-                        const cats = ["All","Renewals","Claims","Certificates","Onboarding","Endorsements","Cancellations"];
+                        const cats = ["All","Quote","Policy","Renewal","Claim","Certificate","Endorsement","Cancellation","Finance"];
                         const filtered = (dbTemplates.length ? dbTemplates : TEMPLATES).filter(t => {
                           const q = cSearch.trim().toLowerCase();
-                          const matchSearch = !q || t.name.toLowerCase().includes(q) || t.type.toLowerCase().includes(q) || t.cat.toLowerCase().includes(q) || t.ver.toLowerCase().includes(q);
-                          const matchCat = cCat==="All" || t.cat===cCat;
+                          const matchSearch = !q || t.name.toLowerCase().includes(q) || t.type.toLowerCase().includes(q) || (t.cat||"").toLowerCase().includes(q) || t.ver.toLowerCase().includes(q);
+                          const tags: string[] = t.tags || [t.cat];
+                          const matchCat = cCat==="All" || tags.includes(cCat);
                           return matchSearch && matchCat;
                         });
                         return (
@@ -900,7 +916,7 @@ const [templatesLoading, setTemplatesLoading] = useState(false);
                               {cats.map(c=>(
                                 <button key={c} onClick={()=>setCCat(c)} style={{ padding:"3px 10px", borderRadius:20, fontSize:11, cursor:"pointer", fontFamily:F, fontWeight:cCat===c?700:400, background:cCat===c?AC:"#fff", color:cCat===c?"#fff":TS, border:`1px solid ${cCat===c?AC:BD}`, transition:"all 0.12s" }}>{c}</button>
                               ))}
-                              <span style={{ marginLeft:"auto", fontSize:11, color:TM }}>{filtered.length} of {TEMPLATES.length}</span>
+                              <span style={{ marginLeft:"auto", fontSize:11, color:TM }}>{filtered.length} of {(dbTemplates.length ? dbTemplates : TEMPLATES).length}</span>
                             </div>
 
                             {/* Empty state */}
