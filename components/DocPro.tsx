@@ -493,148 +493,142 @@ const [templatesLoading, setTemplatesLoading] = useState(false);
         <main style={{ flex:1, overflowY:"auto", padding:24 }}>
 
           {/* ═══ DASHBOARD ═══ */}
-          {nav==="dashboard" && (
+          {nav==="dashboard" && (()=>{
+            const today = new Date().toISOString().slice(0,10);
+            const thisMonth = new Date().toISOString().slice(0,7);
+            const docsToday = docHistory.filter((d:any) => (d.created_at||"").slice(0,10) === today).length;
+            const docsThisMonth = docHistory.filter((d:any) => (d.created_at||"").slice(0,7) === thisMonth).length;
+            const templatesActive = dbTemplates.filter((t:any) => t.status === "Active").length;
+            const totalDocs = docHistory.length;
+
+            // Last 14 days volume
+            const last14: number[] = Array.from({ length:14 }, (_,i) => {
+              const d = new Date(); d.setDate(d.getDate() - (13 - i));
+              const key = d.toISOString().slice(0,10);
+              return docHistory.filter((doc:any) => (doc.created_at||"").slice(0,10) === key).length;
+            });
+            const maxVol = Math.max(...last14, 1);
+
+            // Document type breakdown
+            const typeCounts: Record<string,number> = {};
+            docHistory.forEach((d:any) => {
+              const t = (d.associated_type || "Other");
+              typeCounts[t] = (typeCounts[t] || 0) + 1;
+            });
+            const typeColors: Record<string,string> = { policy:"#f97316", claim:"#ef4444", customer:"#22c55e", Other:"#9ca3af", quote:"#8b5cf6", renewal:"#f59e0b" };
+            const typeEntries = Object.entries(typeCounts).sort((a,b)=>b[1]-a[1]);
+
+            // Recent activity from docHistory
+            const recentDocs = [...docHistory].slice(0,5);
+
+            return (
             <div>
               <PH title="Operations Dashboard" sub="Real-time overview of document production activity" />
               <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:14, marginBottom:20 }}>
                 {[
-                  { label:"Docs Generated Today", value:"12,847", delta:"+18%", color:AC   },
-                  { label:"Templates Active",      value:"284",    delta:"+3",   color:GR   },
-                  { label:"Pending Signatures",    value:"1,203",  delta:"-5%",  color:AM   },
-                  { label:"Delivery Success",      value:"99.4%",  delta:"+0.2%",color:PU   },
+                  { label:"Letters Dispatched Today",  value: docsToday.toLocaleString(),         color:AC },
+                  { label:"Templates Active",           value: templatesActive.toLocaleString(),   color:GR },
+                  { label:"Dispatched This Month",      value: docsThisMonth.toLocaleString(),     color:AM },
+                  { label:"Total in Archive",           value: totalDocs.toLocaleString(),         color:PU },
                 ].map((m,i) => (
                   <Cd key={i} style={{ padding:20, borderTop:`3px solid ${m.color}` }}>
                     <div style={{ fontSize:12, color:TM, marginBottom:8 }}>{m.label}</div>
                     <div style={{ fontSize:26, fontWeight:700, marginBottom:4 }}>{m.value}</div>
-                    <div style={{ fontSize:12, color:GR, fontWeight:500 }}>{m.delta} vs yesterday</div>
+                    <div style={{ fontSize:11, color:TM, fontWeight:400 }}>from live data</div>
                   </Cd>
                 ))}
               </div>
               <div style={{ display:"grid", gridTemplateColumns:"1fr 320px", gap:16 }}>
                 <Cd style={{ padding:20 }}>
                   <SL>Document Volume — Last 14 Days</SL>
-                  <div style={{ display:"flex", alignItems:"flex-end", gap:4, height:100 }}>
-                    {[65,72,58,80,91,76,88,95,102,87,110,98,118,128].map((v,i) => (
-                      <div key={i} style={{ flex:1, background:`${AC}${i===13?"ff":"66"}`, borderRadius:"3px 3px 0 0", height:`${(v/128)*100}%`, minWidth:0 }}/>
-                    ))}
-                  </div>
+                  {last14.every(v=>v===0) ? (
+                    <div style={{ height:100, display:"flex", alignItems:"center", justifyContent:"center", color:TM, fontSize:13 }}>No documents dispatched in the last 14 days</div>
+                  ) : (
+                    <div style={{ display:"flex", alignItems:"flex-end", gap:4, height:100 }}>
+                      {last14.map((v,i) => (
+                        <div key={i} title={`${v} docs`} style={{ flex:1, background:`${AC}${i===13?"ff":"88"}`, borderRadius:"3px 3px 0 0", height:`${(v/maxVol)*100}%`, minWidth:0, minHeight: v>0?4:0 }}/>
+                      ))}
+                    </div>
+                  )}
                 </Cd>
                 <Cd style={{ padding:20 }}>
-                  <SL>Recent Activity</SL>
-                  {[
-                    { time:"09:41", action:"Template published", user:"Sarah K." },
-                    { time:"09:38", action:"Bulk job complete",  user:"System"   },
-                    { time:"09:22", action:"Approval requested", user:"James T." },
-                    { time:"08:57", action:"eSign completed",    user:"David M." },
-                  ].map((a,i) => (
-                    <div key={i} style={{ display:"flex", gap:10, padding:"7px 0", borderBottom:i<3?`1px solid ${BD}`:"none", fontSize:12, alignItems:"center" }}>
-                      <span style={{ color:TM, width:34, flexShrink:0 }}>{a.time}</span>
-                      <span style={{ flex:1, color:TP }}>{a.action}</span>
-                      <span style={{ color:TM }}>{a.user}</span>
+                  <SL>Recent Letters</SL>
+                  {recentDocs.length === 0 ? (
+                    <div style={{ padding:"20px 0", textAlign:"center", color:TM, fontSize:13 }}>No letters dispatched yet</div>
+                  ) : recentDocs.map((d:any,i:number) => (
+                    <div key={i} style={{ display:"flex", gap:10, padding:"7px 0", borderBottom:i<recentDocs.length-1?`1px solid ${BD}`:"none", fontSize:12, alignItems:"center" }}>
+                      <span style={{ color:TM, width:44, flexShrink:0, fontSize:11 }}>{d.created_at ? new Date(d.created_at).toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"}) : "—"}</span>
+                      <span style={{ flex:1, color:TP, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" as const }}>{d.party_name || d.associated_name || "—"}</span>
+                      <span style={{ color:TM, fontSize:11, flexShrink:0 }}>{d.associated_ref || "—"}</span>
                     </div>
                   ))}
                 </Cd>
               </div>
 
-              {/* Distribution Type Chart */}
+              {/* Document type breakdown */}
               <Cd style={{ padding:20, marginTop:16 }}>
                 <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:20 }}>
                   <div>
-                    <SL>Distribution by Channel — March 2026</SL>
-                    <div style={{ fontSize:13, color:TS }}>38,412 documents dispatched this month</div>
-                  </div>
-                  <div style={{ display:"flex", gap:8 }}>
-                    {["This Month","Last Month","YTD"].map((l,i)=>(
-                      <button key={l} style={{ padding:"4px 12px", borderRadius:20, fontSize:11, cursor:"pointer", fontFamily:F, fontWeight:i===0?600:400, background:i===0?AC:"#fff", color:i===0?"#fff":TS, border:`1px solid ${i===0?AC:BD}` }}>{l}</button>
-                    ))}
+                    <SL>Letters by Association Type</SL>
+                    <div style={{ fontSize:13, color:TS }}>{totalDocs.toLocaleString()} total letters in archive</div>
                   </div>
                 </div>
-                <div style={{ display:"grid", gridTemplateColumns:"1fr 220px", gap:24, alignItems:"center" }}>
-
-                  {/* Horizontal bar chart */}
-                  <div>
-                    {[
-                      { label:"Central Print",    value:16240, pct:42, color:"#f97316", icon:"🖨️" },
-                      { label:"Email",             value:11524, pct:30, color:"#22c55e", icon:"✉️" },
-                      { label:"Customer Portal",   value:5762,  pct:15, color:"#f59e0b", icon:"🌐" },
-                      { label:"SMS",               value:2689,  pct:7,  color:"#8b5cf6", icon:"💬" },
-                      { label:"WhatsApp",           value:1541,  pct:4,  color:"#f97316", icon:"__WA__" },
-                      { label:"Archive Only",       value:656,   pct:2,  color:"#9ca3af", icon:"🗄️" },
-                    ].map((ch,i)=>(
-                      <div key={i} style={{ marginBottom:14 }}>
-                        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:5 }}>
-                          <div style={{ display:"flex", alignItems:"center", gap:8, fontSize:13 }}>
-                            <Icon v={ch.icon} size={14} />
-                            <span style={{ color:TP, fontWeight:500 }}>{ch.label}</span>
+                {typeEntries.length === 0 ? (
+                  <div style={{ textAlign:"center", padding:32, color:TM, fontSize:13 }}>No documents in archive yet — dispatched letters will appear here</div>
+                ) : (
+                  <div style={{ display:"grid", gridTemplateColumns:"1fr 200px", gap:24, alignItems:"center" }}>
+                    <div>
+                      {typeEntries.map(([type, count], i) => {
+                        const pct = totalDocs > 0 ? Math.round((count / totalDocs) * 100) : 0;
+                        const color = typeColors[type.toLowerCase()] || "#9ca3af";
+                        return (
+                          <div key={i} style={{ marginBottom:14 }}>
+                            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:5 }}>
+                              <span style={{ color:TP, fontWeight:500, fontSize:13, textTransform:"capitalize" as const }}>{type}</span>
+                              <div style={{ display:"flex", alignItems:"center", gap:10, fontSize:12 }}>
+                                <span style={{ color:TM }}>{count.toLocaleString()}</span>
+                                <span style={{ fontWeight:700, color, minWidth:32, textAlign:"right" as const }}>{pct}%</span>
+                              </div>
+                            </div>
+                            <div style={{ height:8, background:"#f0f2f5", borderRadius:4, overflow:"hidden" }}>
+                              <div style={{ height:"100%", width:`${pct}%`, background:color, borderRadius:4, transition:"width 0.6s ease" }}/>
+                            </div>
                           </div>
-                          <div style={{ display:"flex", alignItems:"center", gap:10, fontSize:12 }}>
-                            <span style={{ color:TM }}>{ch.value.toLocaleString()}</span>
-                            <span style={{ fontWeight:700, color:ch.color, minWidth:32, textAlign:"right" }}>{ch.pct}%</span>
+                        );
+                      })}
+                    </div>
+                    <div style={{ display:"flex", flexDirection:"column", alignItems:"center" }}>
+                      <svg width="140" height="140" viewBox="0 0 140 140">
+                        {(()=>{
+                          const r=52, cx=70, cy=70, stroke=20, circ=2*Math.PI*r;
+                          let offset=0;
+                          return typeEntries.map(([type,count],i)=>{
+                            const pct = totalDocs>0?(count/totalDocs)*100:0;
+                            const color = typeColors[type.toLowerCase()]||"#9ca3af";
+                            const dash=(pct/100)*circ, gap=circ-dash;
+                            const rot=(offset/100)*360-90;
+                            offset+=pct;
+                            return <circle key={i} cx={cx} cy={cy} r={r} fill="none" stroke={color} strokeWidth={stroke} strokeDasharray={`${dash} ${gap}`} strokeDashoffset={0} transform={`rotate(${rot} ${cx} ${cy})`}/>;
+                          });
+                        })()}
+                        <text x="70" y="66" textAnchor="middle" style={{ fontSize:18, fontWeight:700, fill:"#1a1f2e", fontFamily:F }}>{totalDocs}</text>
+                        <text x="70" y="82" textAnchor="middle" style={{ fontSize:10, fill:"#9ca3af", fontFamily:F }}>total</text>
+                      </svg>
+                      <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"4px 12px", marginTop:8 }}>
+                        {typeEntries.map(([type],i)=>(
+                          <div key={i} style={{ display:"flex", alignItems:"center", gap:5, fontSize:11, color:TS }}>
+                            <span style={{ width:8, height:8, borderRadius:2, background:typeColors[type.toLowerCase()]||"#9ca3af", flexShrink:0 }}/>
+                            <span style={{ textTransform:"capitalize" as const }}>{type}</span>
                           </div>
-                        </div>
-                        <div style={{ height:8, background:"#f0f2f5", borderRadius:4, overflow:"hidden" }}>
-                          <div style={{ height:"100%", width:`${ch.pct}%`, background:ch.color, borderRadius:4, transition:"width 0.6s ease" }}/>
-                        </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
-
-                  {/* Donut chart (SVG) */}
-                  <div style={{ display:"flex", flexDirection:"column", alignItems:"center" }}>
-                    <svg width="160" height="160" viewBox="0 0 160 160">
-                      {(()=>{
-                        const segs = [
-                          { pct:42, color:"#f97316" },
-                          { pct:30, color:"#22c55e" },
-                          { pct:15, color:"#f59e0b" },
-                          { pct:7,  color:"#8b5cf6" },
-                          { pct:4,  color:"#f97316" },
-                          { pct:2,  color:"#9ca3af" },
-                        ];
-                        const r = 60, cx = 80, cy = 80, stroke = 22;
-                        const circ = 2 * Math.PI * r;
-                        let offset = 0;
-                        return segs.map((s,i)=>{
-                          const dash = (s.pct / 100) * circ;
-                          const gap  = circ - dash;
-                          const rot  = (offset / 100) * 360 - 90;
-                          offset += s.pct;
-                          return (
-                            <circle key={i} cx={cx} cy={cy} r={r}
-                              fill="none" stroke={s.color} strokeWidth={stroke}
-                              strokeDasharray={`${dash} ${gap}`}
-                              strokeDashoffset={0}
-                              transform={`rotate(${rot} ${cx} ${cy})`}
-                              style={{ transition:"stroke-dasharray 0.6s ease" }}
-                            />
-                          );
-                        });
-                      })()}
-                      <text x="80" y="75" textAnchor="middle" style={{ fontSize:20, fontWeight:700, fill:"#1a1f2e", fontFamily:F }}>38K</text>
-                      <text x="80" y="93" textAnchor="middle" style={{ fontSize:10, fill:"#9ca3af", fontFamily:F }}>dispatched</text>
-                    </svg>
-                    {/* Legend */}
-                    <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"4px 14px", marginTop:8 }}>
-                      {[
-                        { label:"Print",   color:"#f97316" },
-                        { label:"Email",   color:"#22c55e" },
-                        { label:"Portal",  color:"#f59e0b" },
-                        { label:"SMS",     color:"#8b5cf6" },
-                        { label:"WhatsApp",color:"#f97316" },
-                        { label:"Archive", color:"#9ca3af" },
-                      ].map((l,i)=>(
-                        <div key={i} style={{ display:"flex", alignItems:"center", gap:5, fontSize:11, color:TS }}>
-                          <span style={{ width:8, height:8, borderRadius:2, background:l.color, flexShrink:0 }}/>
-                          {l.label}
-                        </div>
-                      ))}
                     </div>
                   </div>
-
-                </div>
+                )}
               </Cd>
             </div>
-          )}
+            );
+          })()}
 
           {/* ═══ TEMPLATES ═══ */}
           {nav==="templates" && (()=>{
