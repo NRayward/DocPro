@@ -280,6 +280,18 @@ const [templatesLoading, setTemplatesLoading] = useState(false);
   const [mergeData, setMergeData] = useState<Record<string,string>>({});
   
   useEffect(() => {
+    if (selectedRecord?.type === "claim") {
+      setClaimRecipientsLoading(true);
+      fetch(`/api/claim-parties?claim_ref=${encodeURIComponent(selectedRecord.ref)}`)
+        .then(r => r.json())
+        .then(data => { setClaimRecipients(Array.isArray(data) ? data : []); setClaimRecipientsLoading(false); })
+        .catch(() => { setClaimRecipients([]); setClaimRecipientsLoading(false); });
+    } else {
+      setClaimRecipients([]);
+    }
+  }, [selectedRecord?.ref]);
+
+  useEffect(() => {
     if (!searchQuery || searchQuery.length < 2) { setPasResults([]); return; }
     fetch(`/api/pas-search?q=${encodeURIComponent(searchQuery)}&type=${searchType}`)
       .then(r => r.json())
@@ -348,6 +360,8 @@ const [templatesLoading, setTemplatesLoading] = useState(false);
     const [selectedRecord, setSelectedRecord] = useState(null);
   const [selectedParty, setSelectedParty] = useState(null);
   const [claimPartyStep, setClaimPartyStep] = useState(false);
+  const [claimRecipients, setClaimRecipients] = useState<any[]>([]);
+  const [claimRecipientsLoading, setClaimRecipientsLoading] = useState(false);
   const [composeMode, setComposeMode] = useState("template"); // "template" | "adhoc"
   const [aiPrompt, setAiPrompt] = useState("");
   const [aiTone, setAiTone] = useState("professional");
@@ -916,11 +930,14 @@ const [templatesLoading, setTemplatesLoading] = useState(false);
                       <div style={{ fontSize:12, color:TM, marginBottom:16 }}>Select the recipient for this letter</div>
 
                       {/* Build recipient list from selected record */}
-                      {(()=>{
+                      {claimRecipientsLoading && selectedRecord?.type === "claim" && (
+                        <div style={{ textAlign:"center", padding:"20px 0", color:TM, fontSize:13 }}>Loading claim parties…</div>
+                      )}
+                      {!claimRecipientsLoading && (()=>{
                         // Build recipients based on record type
                         let recipients: any[] = [];
                         if (selectedRecord?.type === "claim") {
-                          recipients = (CLAIM_PARTIES as any)[selectedRecord.ref] || [
+                          recipients = claimRecipients.length > 0 ? claimRecipients : [
                             { id:"p1", role:"Policyholder", name:selectedRecord.name, contact:"", phone:"", address:"" }
                           ];
                         } else if (selectedRecord?.type === "policy" || selectedRecord?.type === "customer") {
@@ -953,6 +970,9 @@ const [templatesLoading, setTemplatesLoading] = useState(false);
                                           {party.contact && <div style={{ fontSize:11, color:TM }}>{party.contact}</div>}
                                           {party.phone  && <div style={{ fontSize:11, color:TM }}>{party.phone}</div>}
                                           {party.address && <div style={{ fontSize:11, color:TM }}>{party.address}</div>}
+                                          {party.primary_contact && <div style={{ fontSize:11, color:TM }}>Contact: {party.primary_contact}</div>}
+                                          {party.policy_number && <div style={{ fontSize:11, color:TM }}>Policy: {party.policy_number}</div>}
+                                          {party.vehicle_registration && <div style={{ fontSize:11, color:TM }}>Reg: {party.vehicle_registration}</div>}
                                         </div>
                                         <div style={{ width:20, height:20, borderRadius:"50%", border:`2px solid ${sel?AC:BD}`, background:sel?AC:"#fff", flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center", marginLeft:10 }}>
                                           {sel && <div style={{ width:8, height:8, borderRadius:"50%", background:"#fff" }}/>}
