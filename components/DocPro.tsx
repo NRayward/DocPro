@@ -280,18 +280,6 @@ const [templatesLoading, setTemplatesLoading] = useState(false);
   const [mergeData, setMergeData] = useState<Record<string,string>>({});
   
   useEffect(() => {
-    if (selectedRecord?.type === "claim") {
-      setClaimRecipientsLoading(true);
-      fetch(`/api/claim-parties?claim_ref=${encodeURIComponent(selectedRecord.ref)}`)
-        .then(r => r.json())
-        .then(data => { setClaimRecipients(Array.isArray(data) ? data : []); setClaimRecipientsLoading(false); })
-        .catch(() => { setClaimRecipients([]); setClaimRecipientsLoading(false); });
-    } else {
-      setClaimRecipients([]);
-    }
-  }, [selectedRecord?.ref]);
-
-  useEffect(() => {
     if (!searchQuery || searchQuery.length < 2) { setPasResults([]); return; }
     fetch(`/api/pas-search?q=${encodeURIComponent(searchQuery)}&type=${searchType}`)
       .then(r => r.json())
@@ -358,6 +346,18 @@ const [templatesLoading, setTemplatesLoading] = useState(false);
       }).catch(() => {});
   }, []);
     const [selectedRecord, setSelectedRecord] = useState(null);
+
+  useEffect(() => {
+    if (selectedRecord?.type === "claim") {
+      setClaimRecipientsLoading(true);
+      fetch(`/api/claim-parties?claim_ref=${encodeURIComponent(selectedRecord.ref)}`)
+        .then(r => r.json())
+        .then(data => { setClaimRecipients(Array.isArray(data) ? data : []); setClaimRecipientsLoading(false); })
+        .catch(() => { setClaimRecipients([]); setClaimRecipientsLoading(false); });
+    } else {
+      setClaimRecipients([]);
+    }
+  }, [selectedRecord?.ref]);
   const [selectedParty, setSelectedParty] = useState(null);
   const [claimPartyStep, setClaimPartyStep] = useState(false);
   const [claimRecipients, setClaimRecipients] = useState<any[]>([]);
